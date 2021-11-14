@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 import argparse
 import json
 import time
@@ -60,20 +59,20 @@ def main():
     capture = cv2.VideoCapture(0)  # connect to webcam
 
     # create the window
-    window_segmented = "Color Segmenter"
-    cv2.namedWindow(window_segmented, cv2.WINDOW_AUTOSIZE)
+    # window_segmented = "Color Segmenter"
+    # cv2.namedWindow(window_segmented, cv2.WINDOW_AUTOSIZE)
 
     # create a white image background dim 600*400
     background = np.zeros((422, 750, 3), np.uint8)
     background.fill(255)
 
     # window for display background/draw area
-    draw_area = "Draw Area"
-    cv2.namedWindow(draw_area)
+    # draw_area = "Draw Area"
+    # cv2.namedWindow(draw_area)
 
     # merged camera and drawing
-    merged_area = "Interactive Drawing"
-    cv2.namedWindow(merged_area)
+    # merged_area = "Interactive Drawing"
+    # cv2.namedWindow(merged_area)
     image_canvas = np.zeros((422, 750, 3), np.uint8)
 
     # pen variables
@@ -137,19 +136,31 @@ def main():
 
 
         # imshows
-        cv2.imshow(window_segmented, image_segmenter)  # drawing object (pen)
-        cv2.imshow(draw_area, background)  # draw area
-        cv2.imshow("Original", image)
+        # cv2.imshow(window_segmented, image_segmenter)  # drawing object (pen)
+        # cv2.imshow(draw_area, background)  # draw area
+        # cv2.imshow("Original", image)
 
         # merge the video and the drawing ----------------------------INCOMPLETE DOESN'T DRAW THE BLACK COLOR
         # image_merged = cv2.addWeighted(image, 0.5, background, 0.5, 0) # merged the images to draw on the video
         # cv2.imshow(merged_area, image_merged)
         image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
         _, image_inverse = cv2.threshold(image_gray, 50, 255, cv2.THRESH_BINARY_INV)
+
+        final_frame_h1 = cv2.hconcat((image, background))
+
         image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
         image = cv2.bitwise_and(image, image_inverse)
         image = cv2.bitwise_or(image, image_canvas)
-        cv2.imshow(merged_area, image)
+        # cv2.imshow(merged_area, image)
+
+        # horizintally concatenating the two frames.
+
+        final_frame_h2 = cv2.hconcat((image_segmenter, image))
+        final_frame = cv2.vconcat((final_frame_h1,final_frame_h2))
+
+        # Show the concatenated frame using imshow.
+        cv2.imshow('frame',final_frame)
+
 
         """
         interactive keys (k) -----------------------------------------
