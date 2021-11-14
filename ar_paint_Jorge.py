@@ -5,6 +5,7 @@ import json
 import time
 import cv2
 import numpy as np
+from cv2 import FONT_ITALIC, LINE_8
 
 # dictionary with ranges
 ranges_pcss = {"b": {"min": 100, "max": 256},
@@ -114,7 +115,9 @@ def main():
             # dot in the center of the rectangle
             dot_x = x + w / 2
             dot_y = y + h / 2
-            cv2.circle(image, (int(dot_x), int(dot_y)), 10, (0, 0, 0), cv2.FILLED)
+            # cv2.circle(image, (int(dot_x), int(dot_y)), 10, (0, 0, 0), cv2.FILLED)
+            # Draw cruz vermelha sobre o centroid da imagem
+            cv2.putText(image, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
             # draw in the background
             if prev_x == 0 and prev_y == 0:  # skip first iteration
