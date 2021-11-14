@@ -169,7 +169,8 @@ def main():
                     prev_x, prev_y = 0, 0
             else:
                 background.fill(255)
-                cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
+                # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
+                cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
         # merge the video and the drawing ----------------------------INCOMPLETE DOESN'T DRAW THE BLACK COLOR
         image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
