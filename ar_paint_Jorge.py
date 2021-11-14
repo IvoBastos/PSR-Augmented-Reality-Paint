@@ -170,7 +170,7 @@ def main():
         """
         # ESC to close
         k = cv2.waitKey(1) & 0xFF
-        if k == 27:
+        if k == 27 or k == ord("q"):
             break
 
         # clean the screen
