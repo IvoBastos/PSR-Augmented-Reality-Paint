@@ -207,11 +207,11 @@ def main():
                 print("YOU SELECT WHITE COLOR")
 
         # thickness
-        if k == ord("T"):
+        if k == 43: #caracter + "Aumentar linha"
             pen_thickness += 1
             print("THICKNESS: " + str(pen_thickness))
 
-        if k == ord("t"):
+        if k == 45: #caracter - "Diminuir linha"
             pen_thickness -= 1
             if pen_thickness < 0:
                 pen_thickness = 0
