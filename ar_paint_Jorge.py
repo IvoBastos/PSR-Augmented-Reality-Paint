@@ -6,6 +6,7 @@ import time
 import cv2
 import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
+from time import time, ctime, sleep
 
 # dictionary with ranges
 ranges_pcss = {"b": {"min": 100, "max": 256},
@@ -282,6 +283,9 @@ def main():
             circle_drawing = False
             cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
                         (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+            # erase
+        if k == ord("w"):
+            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)
 
     """
     FINALIZATION -----------------------------------------
