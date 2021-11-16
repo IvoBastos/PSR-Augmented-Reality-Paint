@@ -76,6 +76,7 @@ def main():
     pointer_on = False  # pointer method incomplete
     rect_drawing = False  # rectangle drawing flag
     circle_drawing = False  # circle drawing flag
+    shake_prevention = False
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -86,14 +87,19 @@ def main():
     # parse the json file with BGR limits (from color_segmenter.py)
     parser = argparse.ArgumentParser(description="Load a json file with limits")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
+    parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
     args = vars(parser.parse_args())
+
+    # activate shake prevention
+    if args["use_shake_prevention"]:
+        shake_prevention = True
 
     # read the json file
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
     # print json file then close
-    # print(data)  # debug
+    print(data)
     file_handle.close()
 
     ranges_pcss["b"]["min"] = data["b"]["min"]
@@ -158,16 +164,29 @@ def main():
                 if prev_x == 0 and prev_y == 0:  # skip first iteration
                     prev_x, prev_y = dot_x, dot_y
 
-                # mitigate appears and disappears of the pen
-                if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
-                    cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color, pen_thickness)
+                # Activating shake prevention
+                if shake_prevention:
+                    if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
+                        cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                          int(dot_y)), pen_color, pen_thickness)
+                        cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
+                                 pen_thickness)
+                        prev_x, prev_y = dot_x, dot_y
+                    else:
+                        prev_x, prev_y = 0, 0
+                else:
+                    cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                      int(dot_y)), pen_color, pen_thickness)
                     cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
-                else:
-                    prev_x, prev_y = 0, 0
+
             else:
-                background.fill(255)
+                if background_white:
+                    background.fill(255)
+                else:
+                    background.fill(0)
+                # background.fill(255)
                 # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
