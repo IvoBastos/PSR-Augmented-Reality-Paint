@@ -288,7 +288,7 @@ def main():
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
 
-        # draw a rectangle------------------------------------------ INCOMPLETE, DRAW MULTIPLE RECTANGLES
+        # draw a rectangle----------------------------------------------------------------------
         if k == ord("R"):
             rect_drawing = True
             rect_pt1_x = int(dot_x)
@@ -297,7 +297,11 @@ def main():
             # print(rect_pt1_x, rect_pt1_y)
 
         if rect_drawing:
-            background.fill(255)
+            if background_white:
+                background.fill(255)
+            else:
+                background.fill(0)
+            # background.fill(255)
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
@@ -311,9 +315,9 @@ def main():
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             rect_drawing = False
-            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y),  pen_color, pen_thickness)
+            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
-        # draw a circle------------------------------------------ INCOMPLETE, DOESN'T WORK PROPERLY
+        # draw a circle------------------------------------------------------------------------
         if k == ord("C"):
             circle_drawing = True
             circle_pt1_x = int(dot_x)
@@ -326,30 +330,37 @@ def main():
             # cv2.circle(image, center_coordinates, radius, color, thickness)
             # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
             #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
-            radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
-                            math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
-            cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
-            a = circle_pt1_x
-            b = circle_pt1_y
-            if a != circle_pt1_x | b != circle_pt1_y:
+            try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
+                        math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
+                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+                a = circle_pt1_x
+                b = circle_pt1_y
+                if a != circle_pt1_x | b != circle_pt1_y:
+                    radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                             math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
-                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
+                    cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+            except:
+                pass
 
         if k == ord("L") and circle_drawing:
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
             circle_drawing = False
-            cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
-                        (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
-            radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-            cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
-            a = circle_pt1_x
-            b = circle_pt1_y
-            if a != circle_pt1_x | b != circle_pt1_y:
+            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
+            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+            try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
+                        math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
+                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+                a = circle_pt1_x
+                b = circle_pt1_y
+                if a != circle_pt1_x | b != circle_pt1_y:
+                    radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                             math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
-                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
+                    cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+            except:
+                pass
 
     """
     FINALIZATION -----------------------------------------
