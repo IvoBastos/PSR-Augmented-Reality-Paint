@@ -3,9 +3,7 @@
 import argparse
 import json
 import math
-import time
 from functools import partial
-
 import cv2
 import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
@@ -37,10 +35,10 @@ def shape(event, x, y, flags, params, mode):
 
     elif event == cv2.EVENT_MOUSEMOVE:
         # Dragging the mouse at this juncture
-        if drawing == True:
+        if drawing:
             if mode == 'rectangle':
                 # If draw is True then it means you've clicked on the left mouse button
-                # Here we will draw a rectangle from previos position to the x,y where the mouse is currently located
+                # Here we will draw a rectangle from previous position to the x,y where the mouse is currently located
                 cv2.rectangle(background, (ix, iy), (x, y), (0, 255, 0), 3)
                 # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
                 a = x
@@ -69,7 +67,6 @@ def shape(event, x, y, flags, params, mode):
             cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
 
 
-# COMIT ANALTINO
 def main():
     """
     INITIALIZE -----------------------------------------
@@ -275,23 +272,24 @@ def main():
         # save the draw in png file
         if k == ord("w"):
             cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)
+            print("DRAWING SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
-        if k == ord("R"):
+        if k == ord("s"):
             cv2.namedWindow('Image_Window')
             rectangle = partial(shape, mode=str('rectangle'))
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
 
         # draw a circle with mouse events
-        if k == ord("C"):
+        if k == ord("e"):
             cv2.namedWindow('Image_Window')
             circle = partial(shape, mode=str('circle'))
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
 
         # draw a rectangle------------------------------------------ INCOMPLETE, DRAW MULTIPLE RECTANGLES
-        if k == ord("s"):
+        if k == ord("R"):
             rect_drawing = True
             rect_pt1_x = int(dot_x)
             rect_pt1_y = int(dot_y)
@@ -299,47 +297,44 @@ def main():
             # print(rect_pt1_x, rect_pt1_y)
 
         if rect_drawing:
+            background.fill(255)
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
-            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), (0, 255, 0), 3)
+            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
             # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
             a = rect_pt2_x
             b = rect_pt2_y
             if a != rect_pt2_x | b != rect_pt2_y:
-                cv2.rectangle(background,(rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), (255, 255, 255), -1)
-
-        # draw a rectangle------------------------------------------ INCOMPLETE, DRAW MULTIPLE RECTANGLES
-        if k == ord("s"):
-
-            cv2.namedWindow('Image_Window')
-            rectangle = partial(shape, mode=str('rectangle'))
-            cv2.setMouseCallback('Image_Window',rectangle)
-            cv2.imshow('Image_Window',background)
-
-        # draw a circle------------------------------------------ INCOMPLETE, DOESN'T WORK PROPERLY
-        if k == ord("e"):
-
-            cv2.namedWindow('Image_Window')
-            circle=partial(shape,mode=str('circle'))
-            cv2.setMouseCallback('Image_Window',circle)
-            cv2.imshow('Image_Window',background)
+                cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
         if k == ord("L") and rect_drawing:
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             rect_drawing = False
-            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, cv2.FILLED)
+            cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y),  pen_color, pen_thickness)
 
         # draw a circle------------------------------------------ INCOMPLETE, DOESN'T WORK PROPERLY
-        if k == ord("e"):
+        if k == ord("C"):
             circle_drawing = True
-            ix = int(dot_x)
-            iy = int(dot_y)
+            circle_pt1_x = int(dot_x)
+            circle_pt1_y = int(dot_y)
 
         if circle_drawing:
-            x = int(dot_x)
-            y = int(dot_y)
+            background.fill(255)
+            circle_pt2_x = int(dot_x)
+            circle_pt2_y = int(dot_y)
             # cv2.circle(image, center_coordinates, radius, color, thickness)
+            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
+            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+            radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
+                            math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
+            cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
+            a = circle_pt1_x
+            b = circle_pt1_y
+            if a != circle_pt1_x | b != circle_pt1_y:
+                radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
+                            math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
+                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
 
         if k == ord("L") and circle_drawing:
             circle_pt2_x = int(dot_x)
@@ -347,17 +342,14 @@ def main():
             circle_drawing = False
             cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
                         (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
-            radius=math.pow(((math.pow(x,2)-math.pow(ix,2))+(math.pow(y,2)-math.pow(iy,2))),1/2)
-            cv2.circle(background,(ix, iy), int(radius), (0, 0, 255),3)
-            a = x
-            b = y
-            if a != x | b != y:
-                radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))),1/2)
-                cv2.circle(background,(ix, iy), int(radius), (255, 255, 255), -1)
-
-            # erase
-        if k == ord("w"):
-            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)
+            radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
+            cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
+            a = circle_pt1_x
+            b = circle_pt1_y
+            if a != circle_pt1_x | b != circle_pt1_y:
+                radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
+                            math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
+                cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), (0, 0, 255), 3)
 
     """
     FINALIZATION -----------------------------------------
