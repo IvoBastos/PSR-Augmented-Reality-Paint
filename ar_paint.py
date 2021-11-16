@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import copy
 import json
 import math
 from functools import partial
@@ -132,7 +133,8 @@ def main():
         # read the image
         _, image = capture.read()
         image = cv2.resize(image, (750, 422))  # resize the capture window
-        image=cv2.flip(image,1)                #flip video capture
+        image = cv2.flip(image, 1)  # flip video capture
+
         # transform the image and show it
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
@@ -197,13 +199,16 @@ def main():
         # join frames
         final_frame_h1 = cv2.hconcat((image, background))
 
+        # DUPLICAR IMAGEM ------------------------------------------------
+        image_copy = copy.deepcopy(image)
+
         # join video and drawing
         image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
-        image = cv2.bitwise_and(image, image_inverse)
-        image = cv2.bitwise_or(image, image_canvas)
+        image_copy = cv2.bitwise_and(image_copy, image_inverse)
+        image_copy = cv2.bitwise_or(image_copy, image_canvas)
 
         # horizontally concatenating the two frames.
-        final_frame_h2 = cv2.hconcat((image_segmenter, image))
+        final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
         final_frame = cv2.vconcat((final_frame_h1, final_frame_h2))
 
         # Show the concatenated frame using imshow.
@@ -262,7 +267,7 @@ def main():
             print("THICKNESS: " + str(pen_thickness))
 
         # erase
-        if k == ord("e"):
+        if k == ord("b"):
             if background_white:
                 pen_color = (255, 255, 255)
                 print("YOU SELECT ERASER")
@@ -294,21 +299,21 @@ def main():
             print("DRAWING SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
-        if k == ord("s"):
+        if k == ord("R"):
             cv2.namedWindow('Image_Window')
             rectangle = partial(shape, mode=str('rectangle'))
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
 
         # draw a circle with mouse events
-        if k == ord("e"):
+        if k == ord("C"):
             cv2.namedWindow('Image_Window')
             circle = partial(shape, mode=str('circle'))
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
 
         # draw a rectangle----------------------------------------------------------------------
-        if k == ord("R"):
+        if k == ord("s"):
             rect_drawing = True
             rect_pt1_x = int(dot_x)
             rect_pt1_y = int(dot_y)
@@ -337,13 +342,17 @@ def main():
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
         # draw a circle------------------------------------------------------------------------
-        if k == ord("C"):
+        if k == ord("e"):
             circle_drawing = True
             circle_pt1_x = int(dot_x)
             circle_pt1_y = int(dot_y)
 
         if circle_drawing:
-            background.fill(255)
+            if background_white:
+                background.fill(255)
+            else:
+                background.fill(0)
+            # background.fill(255)
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
             # cv2.circle(image, center_coordinates, radius, color, thickness)
