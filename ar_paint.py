@@ -126,7 +126,7 @@ def main():
         # read the image
         _, image = capture.read()
         image = cv2.resize(image, (750, 422))  # resize the capture window
-
+        image=cv2.flip(image,1)                #flip video capture
         # transform the image and show it
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)

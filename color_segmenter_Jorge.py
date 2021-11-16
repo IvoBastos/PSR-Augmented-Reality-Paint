@@ -67,8 +67,6 @@ def main():
         # transform the image and show it
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
-
-
         # imshows
         cv2.imshow(window_segmented, image_segmenter)
         cv2.imshow(window_regular, image)  # regular camara
