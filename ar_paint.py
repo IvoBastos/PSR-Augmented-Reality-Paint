@@ -84,7 +84,7 @@ def main():
     rect_drawing = False  # rectangle drawing flag
     circle_drawing = False  # circle drawing flag
     shake_prevention = False
-    image_load_flag = False
+    image_load_flag = False # image load flag
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -200,7 +200,8 @@ def main():
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
 
-                # load image for painting-----------------------------------------------------------
+                # load image for painting--------------------------------WORKING BUT NOT COMPLETE / WRONG POSITIONS
+                # IDEA: CONVERT COORDINATES WITH A MAP FUNCTION
                 if image_load_flag:
 
                     # draw lines on the load image
