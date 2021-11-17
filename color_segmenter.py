@@ -43,6 +43,7 @@ def main():
         # read the image
         _, image = capture.read()
         image = cv2.resize(image, (750, 422))  # resize the capture window
+        image = cv2.flip(image, 1)  # flip video capture
 
         # read the values on the trackbars
         min_b_pcss = cv2.getTrackbarPos("min B", window_segmented)

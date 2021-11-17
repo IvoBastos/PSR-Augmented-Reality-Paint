@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import copy
 import json
 import math
 from functools import partial
@@ -17,37 +18,39 @@ ranges_pcss = {"b": {"min": 100, "max": 256},
 
 drawing = False  # true if mouse is pressed
 # mode = str('rectangle') # if 'rectangle', draw rectangle.
-ix, iy = -1, -1
+ix, iy, Drag = -1, -1, False
 
 # create a white image background
 background = np.zeros((422, 750, 3), np.uint8)
 background.fill(255)
 
 
-def shape(event, x, y, flags, params, mode):
-    global ix, iy, drawing
+def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, drawing):
+    global ix, iy, Drag
 
     if event == cv2.EVENT_LBUTTONDOWN:
         # value of variable draw will be set to True, when you press DOWN left mouse button
-        drawing = True
         # mouse location is captured here
         ix, iy = x, y
+        Drag = True
+        cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
     elif event == cv2.EVENT_MOUSEMOVE:
         # Dragging the mouse at this juncture
         if drawing:
-            if mode == 'rectangle':
+            if mode == 'rectangle' and Drag == True:
                 # If draw is True then it means you've clicked on the left mouse button
                 # Here we will draw a rectangle from previous position to the x,y where the mouse is currently located
-                cv2.rectangle(background, (ix, iy), (x, y), (0, 255, 0), 3)
+                cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
                 # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
                 a = x
                 b = y
+
                 if a != x | b != y:
-                    cv2.rectangle(background, (ix, iy), (x, y), (255, 255, 255), -1)
+                    cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
             if mode == 'circle':
                 radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-                cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
+                cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
                 a = x
                 b = y
                 if a != x | b != y:
@@ -55,16 +58,20 @@ def shape(event, x, y, flags, params, mode):
                     cv2.circle(background, (ix, iy), int(radius), (255, 255, 255), -1)
 
     elif event == cv2.EVENT_LBUTTONUP:
+        Drag = False
         drawing = False
-        if mode == 'rectangle':
+
+        if mode == 'rectangle' and Drag == False:
             # As soon as you release the mouse button, variable draw will be set as False
             # Here we are completing to draw the rectangle on image window
             # background=clone
-            cv2.rectangle(background, (ix, iy), (x, y), (0, 255, 0), 2)
+            cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
         if mode == 'circle':
             radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-            cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
+            cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
+
+        return drawing
 
 
 def main():
@@ -76,6 +83,8 @@ def main():
     pointer_on = False  # pointer method incomplete
     rect_drawing = False  # rectangle drawing flag
     circle_drawing = False  # circle drawing flag
+    shake_prevention = False
+    image_load_flag = False # image load flag
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -86,15 +95,28 @@ def main():
     # parse the json file with BGR limits (from color_segmenter.py)
     parser = argparse.ArgumentParser(description="Load a json file with limits")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
+    parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
+    parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
     args = vars(parser.parse_args())
+
+    # activate shake prevention
+    if args["use_shake_prevention"]:
+        shake_prevention = True
+
+    if args["image_load"]:
+        image_load_flag = True
 
     # read the json file
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
     # print json file then close
-    # print(data)  # debug
+    print(data)
     file_handle.close()
+
+    if image_load_flag:
+        cv2.namedWindow("image load")  # create window for the image
+        image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
 
     ranges_pcss["b"]["min"] = data["b"]["min"]
     ranges_pcss["b"]["max"] = data["b"]["max"]
@@ -126,8 +148,11 @@ def main():
         # read the image
         _, image = capture.read()
         image = cv2.resize(image, (750, 422))  # resize the capture window
-        image=cv2.flip(image,1)                #flip video capture
-        # transform the image and show it
+        image = cv2.flip(image, 1)  # flip video capture
+
+
+
+        # transform the image
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
 
@@ -158,16 +183,39 @@ def main():
                 if prev_x == 0 and prev_y == 0:  # skip first iteration
                     prev_x, prev_y = dot_x, dot_y
 
-                # mitigate appears and disappears of the pen
-                if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
-                    cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color, pen_thickness)
+                # Activating shake prevention
+                if shake_prevention:
+                    if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
+                        cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                          int(dot_y)), pen_color, pen_thickness)
+                        cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
+                                 pen_thickness)
+                        prev_x, prev_y = dot_x, dot_y
+                    else:
+                        prev_x, prev_y = 0, 0
+                else:
+                    cv2.line(background, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                      int(dot_y)), pen_color, pen_thickness)
                     cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
-                else:
-                    prev_x, prev_y = 0, 0
+
+                # load image for painting--------------------------------WORKING BUT NOT COMPLETE / WRONG POSITIONS
+                # IDEA: CONVERT COORDINATES WITH A MAP FUNCTION
+                if image_load_flag:
+
+                    # draw lines on the load image
+                    if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
+                        cv2.line(image_load, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                          int(dot_y)), pen_color, pen_thickness)
+
+            # point only mode--------------------------------------------------
             else:
-                background.fill(255)
+                if background_white:
+                    background.fill(255)
+                else:
+                    background.fill(0)
+                # background.fill(255)
                 # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
@@ -178,17 +226,24 @@ def main():
         # join frames
         final_frame_h1 = cv2.hconcat((image, background))
 
+        # deepcopy the original image (creates a full new copy without references)
+        image_copy = copy.deepcopy(image)
+
         # join video and drawing
         image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
-        image = cv2.bitwise_and(image, image_inverse)
-        image = cv2.bitwise_or(image, image_canvas)
+        image_copy = cv2.bitwise_and(image_copy, image_inverse)
+        image_copy = cv2.bitwise_or(image_copy, image_canvas)
 
         # horizontally concatenating the two frames.
-        final_frame_h2 = cv2.hconcat((image_segmenter, image))
+        final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
         final_frame = cv2.vconcat((final_frame_h1, final_frame_h2))
 
         # Show the concatenated frame using imshow.
         cv2.imshow('frame', final_frame)
+
+        # show the image loaded if True
+        if image_load_flag:
+            cv2.imshow("image load", image_load)
 
         """
         interactive keys (k) -----------------------------------------
@@ -243,7 +298,7 @@ def main():
             print("THICKNESS: " + str(pen_thickness))
 
         # erase
-        if k == ord("e"):
+        if k == ord("a"):
             if background_white:
                 pen_color = (255, 255, 255)
                 print("YOU SELECT ERASER")
@@ -262,7 +317,7 @@ def main():
                 background_white = True
                 pen_color = (0, 0, 0)
 
-        # pointer mode ---- not working
+        # pointer mode --- working but when disable leaves the red cross on the drawing
         if k == ord("p"):
             if pointer_on:
                 pointer_on = False
@@ -275,61 +330,63 @@ def main():
             print("DRAWING SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
-        if k == ord("s"):
+        if k == ord("*"):
             cv2.namedWindow('Image_Window')
-            rectangle = partial(shape, mode=str('rectangle'))
+            rect_drawing = True
+
+        if rect_drawing:
+            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness,
+                                drawing=rect_drawing)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
+            # rect_drawing= shape()
 
         # draw a circle with mouse events
-        if k == ord("e"):
+        if k == ord("C"):
             cv2.namedWindow('Image_Window')
-            circle = partial(shape, mode=str('circle'))
+            circle = partial(shape, mode=str('circle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
 
         # draw a rectangle----------------------------------------------------------------------
-        if k == ord("R"):
+        if k == ord("s"):
             rect_drawing = True
             rect_pt1_x = int(dot_x)
             rect_pt1_y = int(dot_y)
-            # print(rect_cnt)
-            # print(rect_pt1_x, rect_pt1_y)
 
         if rect_drawing:
             if background_white:
                 background.fill(255)
             else:
                 background.fill(0)
-            # background.fill(255)
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
-            # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
             a = rect_pt2_x
             b = rect_pt2_y
             if a != rect_pt2_x | b != rect_pt2_y:
                 cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
-        if k == ord("L") and rect_drawing:
+        if k == ord("l") and rect_drawing:
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             rect_drawing = False
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
         # draw a circle------------------------------------------------------------------------
-        if k == ord("C"):
+        if k == ord("e"):
             circle_drawing = True
             circle_pt1_x = int(dot_x)
             circle_pt1_y = int(dot_y)
 
         if circle_drawing:
-            background.fill(255)
+            if background_white:
+                background.fill(255)
+            else:
+                background.fill(0)
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
-            # cv2.circle(image, center_coordinates, radius, color, thickness)
-            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
-            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+
             try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                         math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
@@ -343,12 +400,11 @@ def main():
             except:
                 pass
 
-        if k == ord("L") and circle_drawing:
+        if k == ord("l") and circle_drawing:
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
             circle_drawing = False
-            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
-            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+
             try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                         math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
