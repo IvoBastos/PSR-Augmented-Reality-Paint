@@ -84,6 +84,7 @@ def main():
     rect_drawing = False  # rectangle drawing flag
     circle_drawing = False  # circle drawing flag
     shake_prevention = False
+    image_load_flag = False
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -95,11 +96,15 @@ def main():
     parser = argparse.ArgumentParser(description="Load a json file with limits")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
+    parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
     args = vars(parser.parse_args())
 
     # activate shake prevention
     if args["use_shake_prevention"]:
         shake_prevention = True
+
+    if args["image_load"]:
+        image_load_flag = True
 
     # read the json file
     with open(args["json"], "r") as file_handle:
@@ -108,6 +113,10 @@ def main():
     # print json file then close
     print(data)
     file_handle.close()
+
+    if image_load_flag:
+        cv2.namedWindow("image load")  # create window for the image
+        image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
 
     ranges_pcss["b"]["min"] = data["b"]["min"]
     ranges_pcss["b"]["max"] = data["b"]["max"]
@@ -141,7 +150,9 @@ def main():
         image = cv2.resize(image, (750, 422))  # resize the capture window
         image = cv2.flip(image, 1)  # flip video capture
 
-        # transform the image and show it
+
+
+        # transform the image
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
 
@@ -189,6 +200,15 @@ def main():
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
 
+                # load image for painting-----------------------------------------------------------
+                if image_load_flag:
+
+                    # draw lines on the load image
+                    if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
+                        cv2.line(image_load, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                          int(dot_y)), pen_color, pen_thickness)
+
+            # point only mode--------------------------------------------------
             else:
                 if background_white:
                     background.fill(255)
@@ -205,7 +225,7 @@ def main():
         # join frames
         final_frame_h1 = cv2.hconcat((image, background))
 
-        # DUPLICAR IMAGEM ------------------------------------------------
+        # deepcopy the original image (creates a full new copy without references)
         image_copy = copy.deepcopy(image)
 
         # join video and drawing
@@ -219,6 +239,10 @@ def main():
 
         # Show the concatenated frame using imshow.
         cv2.imshow('frame', final_frame)
+
+        # show the image loaded if True
+        if image_load_flag:
+            cv2.imshow("image load", image_load)
 
         """
         interactive keys (k) -----------------------------------------
@@ -292,7 +316,7 @@ def main():
                 background_white = True
                 pen_color = (0, 0, 0)
 
-        # pointer mode ---- not working
+        # pointer mode --- working but when disable leaves the red cross on the drawing
         if k == ord("p"):
             if pointer_on:
                 pointer_on = False
@@ -315,6 +339,7 @@ def main():
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
             # rect_drawing= shape()
+
         # draw a circle with mouse events
         if k == ord("C"):
             cv2.namedWindow('Image_Window')
@@ -336,13 +361,12 @@ def main():
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
-            # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
             a = rect_pt2_x
             b = rect_pt2_y
             if a != rect_pt2_x | b != rect_pt2_y:
                 cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
-        if k == ord("L") and rect_drawing:
+        if k == ord("l") and rect_drawing:
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             rect_drawing = False
@@ -375,7 +399,7 @@ def main():
             except:
                 pass
 
-        if k == ord("L") and circle_drawing:
+        if k == ord("l") and circle_drawing:
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
             circle_drawing = False
