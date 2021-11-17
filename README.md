@@ -1,4 +1,5 @@
 # PSR-Augmented-Reality-Paint
+
 List of letters used to interact with the program:
 
 BASIC LETTERS:
@@ -16,7 +17,6 @@ BASIC LETTERS:
 '-' - Decreases the drawing pencil thickness;
 
 'c' - Clears the drawing screen;
-
 
 
 
