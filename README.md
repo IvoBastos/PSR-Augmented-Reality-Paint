@@ -1,9 +1,9 @@
 # PSR-Augmented-Reality-Paint
 
 List of letters used to interact with the program:
-
+-
 BASIC LETTERS:
-
+-
 'w' - When pressed saves the json file with the values of the current image;
 
 'q' - Closes the program without saving the json file;
@@ -21,7 +21,7 @@ BASIC LETTERS:
 'c' - Clears the drawing screen;
 
 EXTRA LETTERS:
-
+-
 'w' - When pressed saves the json file with the values of the current image;
 
 'B' - Sets the drawing pencil color to BLACK;
