@@ -18,37 +18,39 @@ ranges_pcss = {"b": {"min": 100, "max": 256},
 
 drawing = False  # true if mouse is pressed
 # mode = str('rectangle') # if 'rectangle', draw rectangle.
-ix, iy = -1, -1
+ix, iy, Drag = -1, -1, False
 
 # create a white image background
 background = np.zeros((422, 750, 3), np.uint8)
 background.fill(255)
 
 
-def shape(event, x, y, flags, params, mode):
-    global ix, iy, drawing
+def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, drawing):
+    global ix, iy, Drag
 
     if event == cv2.EVENT_LBUTTONDOWN:
         # value of variable draw will be set to True, when you press DOWN left mouse button
-        drawing = True
         # mouse location is captured here
         ix, iy = x, y
+        Drag = True
+        cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
     elif event == cv2.EVENT_MOUSEMOVE:
         # Dragging the mouse at this juncture
         if drawing:
-            if mode == 'rectangle':
+            if mode == 'rectangle' and Drag == True:
                 # If draw is True then it means you've clicked on the left mouse button
                 # Here we will draw a rectangle from previous position to the x,y where the mouse is currently located
-                cv2.rectangle(background, (ix, iy), (x, y), (0, 255, 0), 3)
+                cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
                 # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
                 a = x
                 b = y
+
                 if a != x | b != y:
-                    cv2.rectangle(background, (ix, iy), (x, y), (255, 255, 255), -1)
+                    cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
             if mode == 'circle':
                 radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-                cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
+                cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
                 a = x
                 b = y
                 if a != x | b != y:
@@ -56,16 +58,20 @@ def shape(event, x, y, flags, params, mode):
                     cv2.circle(background, (ix, iy), int(radius), (255, 255, 255), -1)
 
     elif event == cv2.EVENT_LBUTTONUP:
+        Drag = False
         drawing = False
-        if mode == 'rectangle':
+
+        if mode == 'rectangle' and Drag == False:
             # As soon as you release the mouse button, variable draw will be set as False
             # Here we are completing to draw the rectangle on image window
             # background=clone
-            cv2.rectangle(background, (ix, iy), (x, y), (0, 255, 0), 2)
+            cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
         if mode == 'circle':
             radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-            cv2.circle(background, (ix, iy), int(radius), (0, 0, 255), 3)
+            cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
+
+        return drawing
 
 
 def main():
@@ -267,7 +273,7 @@ def main():
             print("THICKNESS: " + str(pen_thickness))
 
         # erase
-        if k == ord("b"):
+        if k == ord("a"):
             if background_white:
                 pen_color = (255, 255, 255)
                 print("YOU SELECT ERASER")
@@ -299,16 +305,20 @@ def main():
             print("DRAWING SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
-        if k == ord("R"):
+        if k == ord("*"):
             cv2.namedWindow('Image_Window')
-            rectangle = partial(shape, mode=str('rectangle'))
+            rect_drawing = True
+
+        if rect_drawing:
+            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness,
+                                drawing=rect_drawing)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
-
+            # rect_drawing= shape()
         # draw a circle with mouse events
         if k == ord("C"):
             cv2.namedWindow('Image_Window')
-            circle = partial(shape, mode=str('circle'))
+            circle = partial(shape, mode=str('circle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
 
@@ -317,15 +327,12 @@ def main():
             rect_drawing = True
             rect_pt1_x = int(dot_x)
             rect_pt1_y = int(dot_y)
-            # print(rect_cnt)
-            # print(rect_pt1_x, rect_pt1_y)
 
         if rect_drawing:
             if background_white:
                 background.fill(255)
             else:
                 background.fill(0)
-            # background.fill(255)
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
@@ -352,12 +359,9 @@ def main():
                 background.fill(255)
             else:
                 background.fill(0)
-            # background.fill(255)
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
-            # cv2.circle(image, center_coordinates, radius, color, thickness)
-            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
-            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+
             try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                         math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
@@ -375,8 +379,7 @@ def main():
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
             circle_drawing = False
-            # cv2.ellipse(background, (circle_pt1_x, circle_pt1_y),
-            #             (circle_pt2_x, circle_pt2_y), 0, 0, 360, pen_color, cv2.FILLED)
+
             try:
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                         math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
