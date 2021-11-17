@@ -31,16 +31,16 @@ EXTRA LETTERS:
 'f' - Allows the user to switch between a black and white backgrounds;
 
 'p' - Enables the pointer mode i.e allows the user to move a pointer on the screen;
------------------------------------------------------------------------------------------------------------------------------------
-'s' - Draws a rectangle;
-                            
-'e' - Draws a circle;
 
-'l' - The use of the two previous instructions ('s' and 'e') requires the pressing of the letter 'l' to draw the object with the desired dimentions
-------------------------------------------------------------------------------------------------------------------------------------
 '*' - Draws a rectangle using mouse events;
 
 'C' - Draws a circle using mouse events;
+
+'l' - The use of the two following instructions ('s' and 'e') requires the pressing of the letter 'l' to draw the object with the desired dimentions
+
+'s' - Draws a rectangle;
+
+'e' - Draws a circle;
 
 
 
