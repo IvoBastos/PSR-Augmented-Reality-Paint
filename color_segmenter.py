@@ -37,6 +37,8 @@ def main():
                    "r": {"min": 100, "max": 256},
                    }
 
+    print("Press q to quit or w to save a new file")
+
     # cycle for continuously capture the image
     while True:
 
