@@ -138,7 +138,7 @@ def main():
     image_canvas = np.zeros((422, 750, 3), np.uint8)
 
     # pen variables
-    pen_color = (0, 0, 0)
+    pen_color = (51, 51, 51)
     pen_thickness = 5
 
     """
@@ -199,6 +199,7 @@ def main():
                     cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
+
 
                 # load image for painting--------------------------------WORKING BUT NOT COMPLETE / WRONG POSITIONS
                 # IDEA: CONVERT COORDINATES WITH A MAP FUNCTION
@@ -280,7 +281,7 @@ def main():
         # black color
         if k == ord("B"):
             if background_white:
-                pen_color = (0, 0, 0)
+                pen_color = (51, 51, 51)
                 print("YOU SELECT BLACK COLOR")
             else:
                 pen_color = (255, 255, 255)
@@ -326,7 +327,8 @@ def main():
 
         # save the draw in png file
         if k == ord("w"):
-            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)
+            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)   #Guarda o desenho
+            cv2.imwrite('./drawing2_' + str(ctime()) + '.png', image_copy)  #Guarda a captura com o desenho
             print("DRAWING SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
