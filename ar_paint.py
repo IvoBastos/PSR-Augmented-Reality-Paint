@@ -16,9 +16,10 @@ ranges_pcss = {"b": {"min": 100, "max": 256},
                "r": {"min": 100, "max": 256},
                }
 
-drawing = False  # true if mouse is pressed
-# mode = str('rectangle') # if 'rectangle', draw rectangle.
-ix, iy, Drag = -1, -1, False
+# global variables
+drawing = False  # true in drawing shame mode
+ix, iy, Drag = -1, -1, False  # used in def shape
+pt1_y, pt1_x, moving_mouse = 0, 0, False  # used in def mouse_draw
 
 # create a white image background
 background = np.zeros((422, 750, 3), np.uint8)
@@ -78,8 +79,30 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
         cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
         background = cv2.imread("temp.png")
 
-
         return drawing
+
+
+# paint with mouse on load image
+def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness, image_load):
+    global pt1_y, pt1_x
+    global moving_mouse
+
+    # detect if left button is pressed
+    if event == cv2.EVENT_LBUTTONDOWN:
+        moving_mouse = True
+        pt1_x, pt1_y = x, y
+        # print(x, y)
+
+    # disable the flag to stop drawing
+    if event == cv2.EVENT_LBUTTONUP:
+        moving_mouse = False
+        cv2.line(image_load, (pt1_x, pt1_y), (x, y), pen_color, pen_thickness)
+
+    # draw while mouse is moving
+    if event == cv2.EVENT_MOUSEMOVE:
+        if moving_mouse:
+            cv2.line(image_load, (pt1_x, pt1_y), (x, y), pen_color, pen_thickness)
+            pt1_x, pt1_y = x, y
 
 
 def main():
@@ -92,8 +115,8 @@ def main():
     rect_drawing = False  # rectangle drawing flag
     rect_drawing_mouse = False  # rect draw with the mouse
     circle_drawing = False  # circle drawing flag
-    circle_drawing_mouse = False    # circle draw with the mouse
-    shake_prevention = False
+    circle_drawing_mouse = False  # circle draw with the mouse
+    shake_prevention = False  # shake prevention flag
     image_load_flag = False  # image load flag
 
     # variables
@@ -101,6 +124,11 @@ def main():
     prev_x, prev_y = 0, 0  # point for continuous draw
     rect_pt1_x, rect_pt1_y, rect_pt2_x, rect_pt2_y = 0, 0, 0, 0  # rectangle drawing points
     circle_pt1_x, circle_pt1_y, circle_pt2_x, circle_pt2_y = 0, 0, 0, 0  # circle drawing points
+    # pen variables
+    pen_color = (51, 51, 51)
+    pen_thickness = 5
+    # image load on parse -im
+    image_load = None
 
     # parse the json file with BGR limits (from color_segmenter.py)
     parser = argparse.ArgumentParser(description="Load a json file with limits")
@@ -153,10 +181,6 @@ def main():
     # create canvas image to join draw and video
     image_canvas = np.zeros((422, 750, 3), np.uint8)
 
-    # pen variables
-    pen_color = (51, 51, 51)
-    pen_thickness = 5
-
     """
     EXECUTION -----------------------------------------
     """
@@ -172,6 +196,12 @@ def main():
 
         # get contours
         contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+        # mouse callback on load image
+        if image_load_flag:
+            # draw on load image with mouse
+            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness, image_load=image_load)
+            cv2.setMouseCallback('image load', draw_on_image)
 
         # create the rectangle over object and draw on the background
         for contours in contours:
@@ -204,7 +234,16 @@ def main():
                                                                           int(dot_y)), pen_color, pen_thickness)
                         cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                                  pen_thickness)
-                        prev_x, prev_y = dot_x, dot_y
+
+                        # painting on loaded image
+                        if image_load_flag:
+
+                            # draw lines on the load image
+                            if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
+                                cv2.line(image_load, (int(prev_x), int(prev_y)), (int(dot_x),
+                                                                                  int(dot_y)), pen_color, pen_thickness)
+
+                        prev_x, prev_y = dot_x, dot_y  # reset coordinates
                     else:
                         prev_x, prev_y = 0, 0
                 else:
@@ -213,15 +252,6 @@ def main():
                     cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
-
-                # load image for painting--------------------------------WORKING BUT NOT COMPLETE / WRONG POSITIONS
-                # IDEA: CONVERT COORDINATES WITH A MAP FUNCTION
-                if image_load_flag:
-
-                    # draw lines on the load image
-                    if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
-                        cv2.line(image_load, (int(prev_x), int(prev_y)), (int(dot_x),
-                                                                          int(dot_y)), pen_color, pen_thickness)
 
             # point only mode--------------------------------------------------
             else:
@@ -234,7 +264,7 @@ def main():
                 # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
-        # merge the video and the drawing ----------------------------INCOMPLETE DOESN'T DRAW THE BLACK COLOR
+        # merge the video and the drawing
         image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
         _, image_inverse = cv2.threshold(image_gray, 50, 255, cv2.THRESH_BINARY_INV)
 
