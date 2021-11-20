@@ -27,7 +27,7 @@ background_white = True  # background color
 
 
 def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
-    global ix, iy, Drag, background_white
+    global ix, iy, Drag, background_white, background
 
     if event == cv2.EVENT_LBUTTONDOWN and not Drag:
         # value of variable draw will be set to True, when you press DOWN left mouse button
@@ -40,10 +40,11 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
         # Dragging the mouse at this juncture
 
         if Drag:
-            if background_white:
-                background.fill(255)
-            else:
-                background.fill(0)
+            # if background_white:
+            #     background.fill(255)
+            # else:
+            #     background.fill(0)
+            background = cv2.imread("temp.png")
             if mode == 'rectangle' and Drag:
                 # If draw is True then it means you've clicked on the left mouse button
                 # Here we will draw a rectangle from previous position to the x,y where the mouse is currently located
@@ -52,6 +53,7 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
                 b = y
                 if a != x | b != y:
                     cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
+
             if mode == 'circle':
                 radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
                 cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
@@ -73,6 +75,10 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
             radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
             cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
 
+        cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
+        background = cv2.imread("temp.png")
+
+
         return drawing
 
 
@@ -86,6 +92,7 @@ def main():
     rect_drawing = False  # rectangle drawing flag
     rect_drawing_mouse = False  # rect draw with the mouse
     circle_drawing = False  # circle drawing flag
+    circle_drawing_mouse = False    # circle draw with the mouse
     shake_prevention = False
     image_load_flag = False  # image load flag
 
@@ -113,13 +120,19 @@ def main():
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
+    if image_load_flag:
+        cv2.namedWindow("image load")  # create window for the image
+        image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
+
     # print json file then close
     print(data)
     file_handle.close()
 
-    if image_load_flag:
-        cv2.namedWindow("image load")  # create window for the image
-        image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
+    # ***************************************
+
+    # ADD PRINT() WITH List of letters used to interact with the program
+
+    # ***************************************
 
     ranges_pcss["b"]["min"] = data["b"]["min"]
     ranges_pcss["b"]["max"] = data["b"]["max"]
@@ -341,24 +354,34 @@ def main():
 
         # draw a rectangle with mouse events
         if k == ord("*"):
+            cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
+            background = cv2.imread("temp.png")
             cv2.namedWindow('Image_Window')
             rect_drawing_mouse = True
 
         if rect_drawing_mouse:
+
             rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
-            # rect_drawing= shape()
 
         if k == ord("l") and rect_drawing_mouse:
             rect_drawing_mouse = False
+            cv2.destroyWindow("Image_Window")
 
         # draw a circle with mouse events
         if k == ord("C"):
             cv2.namedWindow('Image_Window')
+            circle_drawing_mouse = True
+
+        if circle_drawing_mouse:
             circle = partial(shape, mode=str('circle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', circle)
             cv2.imshow('Image_Window', background)
+            # rect_drawing= shape()
+
+        if k == ord("l") and circle_drawing_mouse:
+            circle_drawing_mouse = False
 
         # draw a rectangle----------------------------------------------------------------------
         if k == ord("s"):
