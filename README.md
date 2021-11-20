@@ -31,7 +31,7 @@ EXTRA LETTERS:
 
 'p' - Enables the pointer mode i.e allows the user to move a pointer on the screen;
 
-'ç' - Draws a rectangle using mouse events;
+'j' - Draws a rectangle using mouse events;
 
 'º' - Draws a circle using mouse events;
 

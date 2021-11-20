@@ -354,7 +354,7 @@ def main():
             print("DRAWINGS SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
-        if k == ord("ç"):
+        if k == ord("j"):
             cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
             background = cv2.imread("temp.png")
             cv2.namedWindow('Image_Window')
