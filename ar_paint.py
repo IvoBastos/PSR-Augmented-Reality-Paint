@@ -81,7 +81,7 @@ def main():
     INITIALIZE -----------------------------------------
     """
     # program flags
-    global background_white
+    global background_white, background
     pointer_on = False  # pointer method incomplete
     rect_drawing = False  # rectangle drawing flag
     rect_drawing_mouse = False  # rect draw with the mouse
@@ -358,15 +358,14 @@ def main():
 
         # draw a rectangle----------------------------------------------------------------------
         if k == ord("s"):
+            cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
+            background = cv2.imread("temp.png")
             rect_drawing = True
             rect_pt1_x = int(dot_x)
             rect_pt1_y = int(dot_y)
 
         if rect_drawing:
-            if background_white:
-                background.fill(255)
-            else:
-                background.fill(0)
+            background = cv2.imread("temp.png")
             rect_pt2_x = int(dot_x)
             rect_pt2_y = int(dot_y)
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
@@ -380,18 +379,18 @@ def main():
             rect_pt2_y = int(dot_y)
             rect_drawing = False
             cv2.rectangle(background, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
+            cv2.rectangle(image_canvas, (rect_pt1_x, rect_pt1_y), (rect_pt2_x, rect_pt2_y), pen_color, pen_thickness)
 
         # draw a circle------------------------------------------------------------------------
         if k == ord("e"):
+            cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
+            background = cv2.imread("temp.png")
             circle_drawing = True
             circle_pt1_x = int(dot_x)
             circle_pt1_y = int(dot_y)
 
         if circle_drawing:
-            if background_white:
-                background.fill(255)
-            else:
-                background.fill(0)
+            background = cv2.imread("temp.png")
             circle_pt2_x = int(dot_x)
             circle_pt2_y = int(dot_y)
 
@@ -417,12 +416,14 @@ def main():
                 radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                         math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
                 cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+                cv2.circle(image_canvas, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
                 a = circle_pt1_x
                 b = circle_pt1_y
                 if a != circle_pt1_x | b != circle_pt1_y:
                     radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                             math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
                     cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
+                    cv2.circle(image_canvas, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
             except:
                 pass
 
