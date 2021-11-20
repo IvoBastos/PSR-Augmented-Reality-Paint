@@ -23,7 +23,7 @@ BASIC LETTERS:
 EXTRA LETTERS:
 -
 
-'B' - Sets the drawing pencil color to BLACK;
+'m' - Sets the drawing pencil color to BLACK;
 
 'a' - Allows the user to clean the screen with the pointer, like an eraser;
 
@@ -31,9 +31,9 @@ EXTRA LETTERS:
 
 'p' - Enables the pointer mode i.e allows the user to move a pointer on the screen;
 
-'*' - Draws a rectangle using mouse events;
+'ç' - Draws a rectangle using mouse events;
 
-'C' - Draws a circle using mouse events;
+'º' - Draws a circle using mouse events;
 
 'l' - The use of the two following instructions ('s' and 'e') requires the pressing of the letter 'l' to draw the object with the desired dimentions
 
