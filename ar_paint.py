@@ -23,29 +23,33 @@ ix, iy, Drag = -1, -1, False
 # create a white image background
 background = np.zeros((422, 750, 3), np.uint8)
 background.fill(255)
+background_white = True  # background color
 
 
-def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, drawing):
-    global ix, iy, Drag
+def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
+    global ix, iy, Drag, background_white
 
-    if event == cv2.EVENT_LBUTTONDOWN:
+    if event == cv2.EVENT_LBUTTONDOWN and not Drag:
         # value of variable draw will be set to True, when you press DOWN left mouse button
         # mouse location is captured here
         ix, iy = x, y
         Drag = True
-        cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
+        # cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
     elif event == cv2.EVENT_MOUSEMOVE:
         # Dragging the mouse at this juncture
-        if drawing:
-            if mode == 'rectangle' and Drag == True:
+
+        if Drag:
+            if background_white:
+                background.fill(255)
+            else:
+                background.fill(0)
+            if mode == 'rectangle' and Drag:
                 # If draw is True then it means you've clicked on the left mouse button
                 # Here we will draw a rectangle from previous position to the x,y where the mouse is currently located
                 cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
-                # Nas ultimas cordenadas devo desenhar um retangulo da cor do fundo
                 a = x
                 b = y
-
                 if a != x | b != y:
                     cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
             if mode == 'circle':
@@ -57,14 +61,12 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, drawing):
                     radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
                     cv2.circle(background, (ix, iy), int(radius), (255, 255, 255), -1)
 
-    elif event == cv2.EVENT_LBUTTONUP:
+    elif event == cv2.EVENT_LBUTTONDOWN and Drag:
         Drag = False
-        drawing = False
 
-        if mode == 'rectangle' and Drag == False:
+        if mode == 'rectangle' and not Drag:
             # As soon as you release the mouse button, variable draw will be set as False
             # Here we are completing to draw the rectangle on image window
-            # background=clone
             cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
         if mode == 'circle':
@@ -79,12 +81,13 @@ def main():
     INITIALIZE -----------------------------------------
     """
     # program flags
-    background_white = True  # background color
+    global background_white
     pointer_on = False  # pointer method incomplete
     rect_drawing = False  # rectangle drawing flag
+    rect_drawing_mouse = False  # rect draw with the mouse
     circle_drawing = False  # circle drawing flag
     shake_prevention = False
-    image_load_flag = False # image load flag
+    image_load_flag = False  # image load flag
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -150,8 +153,6 @@ def main():
         image = cv2.resize(image, (750, 422))  # resize the capture window
         image = cv2.flip(image, 1)  # flip video capture
 
-
-
         # transform the image
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
@@ -174,7 +175,7 @@ def main():
             dot_x = x + w / 2
             dot_y = y + h / 2
 
-            # Draw cruz vermelha sobre o centroid da imagem
+            # Draw red cross under the centroid of the detected object
             cv2.putText(image, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
             # mode for cursor only
@@ -199,7 +200,6 @@ def main():
                     cv2.line(image_canvas, (int(prev_x), int(prev_y)), (int(dot_x), int(dot_y)), pen_color,
                              pen_thickness)
                     prev_x, prev_y = dot_x, dot_y
-
 
                 # load image for painting--------------------------------WORKING BUT NOT COMPLETE / WRONG POSITIONS
                 # IDEA: CONVERT COORDINATES WITH A MAP FUNCTION
@@ -288,11 +288,11 @@ def main():
                 print("YOU SELECT WHITE COLOR")
 
         # thickness
-        if k == 43:  # caracter + "Aumentar linha"
+        if k == 43:  # character + to increase thickness
             pen_thickness += 1
             print("THICKNESS: " + str(pen_thickness))
 
-        if k == 45:  # caracter - "Diminuir linha"
+        if k == 45:  # character - to decrease thickness
             pen_thickness -= 1
             if pen_thickness < 0:
                 pen_thickness = 0
@@ -318,30 +318,36 @@ def main():
                 background_white = True
                 pen_color = (0, 0, 0)
 
-        # pointer mode --- working but when disable leaves the red cross on the drawing
+        # pointer mode
         if k == ord("p"):
             if pointer_on:
                 pointer_on = False
+                if background_white:
+                    background.fill(255)
+                else:
+                    background.fill(0)
             else:
                 pointer_on = True
 
         # save the draw in png file
         if k == ord("w"):
-            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)   #Guarda o desenho
-            cv2.imwrite('./drawing2_' + str(ctime()) + '.png', image_copy)  #Guarda a captura com o desenho
-            print("DRAWING SAVED AS A .PNG FILE")
+            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)  # Save the drawing
+            cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing plus the camera
+            print("DRAWINGS SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
         if k == ord("*"):
             cv2.namedWindow('Image_Window')
-            rect_drawing = True
+            rect_drawing_mouse = True
 
-        if rect_drawing:
-            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness,
-                                drawing=rect_drawing)
+        if rect_drawing_mouse:
+            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
             # rect_drawing= shape()
+
+        if k == ord("l") and rect_drawing_mouse:
+            rect_drawing_mouse = False
 
         # draw a circle with mouse events
         if k == ord("C"):
