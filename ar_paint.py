@@ -212,10 +212,11 @@ def main():
 
             # point only mode--------------------------------------------------
             else:
-                if background_white:
-                    background.fill(255)
-                else:
-                    background.fill(0)
+                background = cv2.imread("temp.png")
+                # if background_white:
+                #     background.fill(255)
+                # else:
+                #     background.fill(0)
                 # background.fill(255)
                 # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
@@ -322,12 +323,15 @@ def main():
         if k == ord("p"):
             if pointer_on:
                 pointer_on = False
-                if background_white:
-                    background.fill(255)
-                else:
-                    background.fill(0)
+                # if background_white:
+                #     background.fill(255)
+                # else:
+                #     background.fill(0)
+                background = cv2.imread("temp.png")
             else:
                 pointer_on = True
+                cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
+                background = cv2.imread("temp.png")
 
         # save the draw in png file
         if k == ord("w"):
