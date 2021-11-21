@@ -21,14 +21,9 @@ drawing = False  # true in drawing shame mode
 ix, iy, Drag = -1, -1, False  # used in def shape
 pt1_y, pt1_x, moving_mouse = 0, 0, False  # used in def mouse_draw
 
-# create a white image background
-background = np.zeros((422, 750, 3), np.uint8)
-background.fill(255)
-background_white = True  # background color
 
-
-def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
-    global ix, iy, Drag, background_white, background
+def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, background):
+    global ix, iy, Drag
 
     if event == cv2.EVENT_LBUTTONDOWN and not Drag:
         # value of variable draw will be set to True, when you press DOWN left mouse button
@@ -109,8 +104,12 @@ def main():
     """
     INITIALIZE -----------------------------------------
     """
+    # create a white image background
+    background = np.zeros((422, 750, 3), np.uint8)
+    background.fill(255)
+
     # program flags
-    global background_white, background
+    background_white = True  # background color flag
     pointer_on = False  # pointer method incomplete
     rect_drawing = False  # rectangle drawing flag
     rect_drawing_mouse = False  # rect draw with the mouse
@@ -127,11 +126,14 @@ def main():
     # pen variables
     pen_color = (51, 51, 51)
     pen_thickness = 5
+
     # image load on parse -im
-    image_load = None
+    image_load = None  # preventing used before assignment bug
+    # image copy of the camara to draw on
+    image_copy = None  # preventing used before assignment bug
 
     # parse the json file with BGR limits (from color_segmenter.py)
-    parser = argparse.ArgumentParser(description="Load a json file with limits")
+    parser = argparse.ArgumentParser(description="Load a json file with RGB limits")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
     parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
@@ -264,30 +266,39 @@ def main():
                 # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
-        # merge the video and the drawing
-        image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
-        _, image_inverse = cv2.threshold(image_gray, 50, 255, cv2.THRESH_BINARY_INV)
+        # show the concatenated window
+        if not image_load_flag:
+            # merge the video and the drawing
+            image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
+            _, image_inverse = cv2.threshold(image_gray, 50, 255, cv2.THRESH_BINARY_INV)
 
-        # join frames
-        final_frame_h1 = cv2.hconcat((image, background))
+            # join frames
+            final_frame_h1 = cv2.hconcat((image, background))
 
-        # deepcopy the original image (creates a full new copy without references)
-        image_copy = copy.deepcopy(image)
+            # deepcopy the original image (creates a full new copy without references)
+            image_copy = copy.deepcopy(image)
 
-        # join video and drawing
-        image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
-        image_copy = cv2.bitwise_and(image_copy, image_inverse)
-        image_copy = cv2.bitwise_or(image_copy, image_canvas)
+            # join video and drawing
+            image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
+            image_copy = cv2.bitwise_and(image_copy, image_inverse)
+            image_copy = cv2.bitwise_or(image_copy, image_canvas)
 
-        # horizontally concatenating the two frames.
-        final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
-        final_frame = cv2.vconcat((final_frame_h1, final_frame_h2))
+            # horizontally concatenating the two frames.
+            final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
+            final_frame = cv2.vconcat((final_frame_h1, final_frame_h2))
 
-        # Show the concatenated frame using imshow.
-        cv2.imshow('frame', final_frame)
+            # Show the concatenated frame using imshow.
+            cv2.imshow('frame', final_frame)
 
-        # show the image loaded if True
+        # show the loaded image and the video only
         if image_load_flag:
+            # make the image load the same size as the camera image so that it can be painted in all extension
+            image_load = cv2.resize(image_load, (750, 422))  # resize the capture window
+
+            # show images (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
+            # THE MOUSE)
+            cv2.namedWindow("Video Capture")
+            cv2.imshow("Video Capture", image)
             cv2.imshow("image load", image_load)
 
         """
@@ -339,8 +350,8 @@ def main():
 
         if k == 45:  # character - to decrease thickness
             pen_thickness -= 1
-            if pen_thickness < 0:
-                pen_thickness = 0
+            if pen_thickness <= 0:
+                pen_thickness = 1
             print("THICKNESS: " + str(pen_thickness))
 
         # erase
@@ -361,7 +372,7 @@ def main():
             else:
                 background.fill(255)
                 background_white = True
-                pen_color = (0, 0, 0)
+                pen_color = (51, 51, 51)
 
         # pointer mode
         if k == ord("p"):
@@ -379,8 +390,13 @@ def main():
 
         # save the draw in png file
         if k == ord("w"):
-            cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)  # Save the drawing
-            cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing plus the camera
+            if not image_load_flag:
+                cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)  # Save the drawing
+                cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing on the camera
+
+            if image_load_flag:
+                cv2.imwrite('./drawing_' + str(ctime()) + '.png', image_load)  # Save the drawing painted by AR
+
             print("DRAWINGS SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events
@@ -391,7 +407,8 @@ def main():
             rect_drawing_mouse = True
 
         if rect_drawing_mouse:
-            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness)
+            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness,
+                                background=background)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
 
