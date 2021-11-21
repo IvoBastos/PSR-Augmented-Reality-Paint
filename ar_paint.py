@@ -295,7 +295,7 @@ def main():
             # make the image load the same size as the camera image so that it can be painted in all extension
             image_load = cv2.resize(image_load, (750, 422))  # resize the capture window
 
-            # show images (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
+            # show image (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
             # THE MOUSE)
             cv2.namedWindow("Video Capture")
             cv2.imshow("Video Capture", image)
