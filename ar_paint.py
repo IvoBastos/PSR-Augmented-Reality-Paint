@@ -100,6 +100,80 @@ def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness, image_load):
             pt1_x, pt1_y = x, y
 
 
+def prepare_image(imagemTratar):
+
+    image = cv2.imread(imagemTratar, cv2.IMREAD_COLOR)
+    imagehsv= cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    cv2.imshow('original', image)  # Display the image
+
+    height, width, _ = image.shape
+    image_canvas = np.zeros((height, width), np.uint8)
+
+    i = 0
+    while True:
+        if i == 4:
+            break
+
+        if i == 3: #apanha o preto +/-
+            lower = np.array([0,0,0])
+            upper = np.array([50,50,50])
+            mask = cv2.inRange(imagehsv, lower, upper)
+
+        if i == 0: #apanha o verde +/-
+            lower = np.array([35,150,20])
+            upper = np.array([70,255,255])
+            mask = cv2.inRange(imagehsv, lower, upper)
+
+        if i==1: #apanha o azul +/-
+            lower = np.array([70, 150, 20])
+            upper = np.array([130, 255, 255])
+            mask = cv2.inRange(imagehsv, lower, upper)
+
+        if i == 2: #apanha o vermelho +/-
+            # lower mask (0-10)
+            lower_red = np.array([0, 50, 50])
+            upper_red = np.array([10, 255, 255])
+            mask0 = cv2.inRange(imagehsv, lower_red, upper_red)
+
+            # upper mask (170-180)
+            lower_red = np.array([170, 50, 50])
+            upper_red = np.array([180, 255, 255])
+            mask1 = cv2.inRange(imagehsv, lower_red, upper_red)
+
+            # join my masks
+            mask = mask0 + mask1
+
+        # deteta os contornos da cor a trabalhar
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        maskr = np.zeros(mask.shape, np.uint8)
+        maskr2 = np.zeros(mask.shape, np.uint8)
+        cv2.drawContours(maskr, contours, -1, (255), 1)
+
+        # Preciso de uma imagem de trabalho onde possa preencher achar e achar o centro para depois escrever na mascara inicial
+        cv2.drawContours(maskr2, contours, -1, (255), -1)
+        kernel = np.ones((3, 3), 'uint8')
+
+        image_1 = cv2.erode(maskr2, kernel, iterations=3)
+
+        # Escrever o numero da cor no centro do contorno a pintar
+        contoursm, _ = cv2.findContours(image_1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contoursmi in contoursm:
+            M = cv2.moments(contoursmi)
+            if M['m00'] != 0:
+                cx = int(M['m10'] / M['m00'])
+                cy = int(M['m01'] / M['m00'])
+                cv2.putText(image_canvas, str(i+1), (cx+2, cy+2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+        image_canvas = cv2.add(image_canvas, maskr)
+        i = i + 1
+
+    image_canvas = cv2.bitwise_not(image_canvas)
+    #cv2.imshow('pinta', image_canvas)  # Display the image
+
+    return image_canvas
+
+
 def main():
     """
     INITIALIZE -----------------------------------------
@@ -117,6 +191,7 @@ def main():
     circle_drawing_mouse = False  # circle draw with the mouse
     shake_prevention = False  # shake prevention flag
     image_load_flag = False  # image load flag
+    image_prepare = False  # image preparation flag
 
     # variables
     dot_x, dot_y = 0, 0  # pen points
@@ -137,6 +212,7 @@ def main():
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
     parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
+    parser.add_argument("-ip", "--image_prepare", type=str, help="Full path to png file, to clean")
     args = vars(parser.parse_args())
 
     # activate shake prevention
@@ -146,13 +222,25 @@ def main():
     if args["image_load"]:
         image_load_flag = True
 
+    if args["image_prepare"]:
+        image_prepare = True
+
     # read the json file
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
-    if image_load_flag:
+    if (image_load_flag and image_prepare == False):
         cv2.namedWindow("image load")  # create window for the image
         image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
+
+    if image_prepare:
+        try:
+            image_load_flag = True
+            image_load = prepare_image(args['image_prepare'])
+            image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
+            cv2.namedWindow("image load")  # create window for the image
+        except:
+            print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
     # print json file then close
     print(data)
