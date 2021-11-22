@@ -21,9 +21,16 @@ drawing = False  # true in drawing shame mode
 ix, iy, Drag = -1, -1, False  # used in def shape
 pt1_y, pt1_x, moving_mouse = 0, 0, False  # used in def mouse_draw
 
+# create a white image background
+background = np.zeros((422, 750, 3), np.uint8)
+background.fill(255)
 
-def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, background):
-    global ix, iy, Drag
+# image load on parse -im
+image_load = None
+
+
+def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
+    global ix, iy, Drag, background
 
     if event == cv2.EVENT_LBUTTONDOWN and not Drag:
         # value of variable draw will be set to True, when you press DOWN left mouse button
@@ -51,13 +58,16 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, background
                     cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
             if mode == 'circle':
-                radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
-                cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
-                a = x
-                b = y
-                if a != x | b != y:
+                try:
                     radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
                     cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
+                    a = x
+                    b = y
+                    if a != x | b != y:
+                        radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
+                        cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
+                except:
+                    pass
 
     elif event == cv2.EVENT_LBUTTONDOWN and Drag:
         Drag = False
@@ -78,8 +88,8 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness, background
 
 
 # paint with mouse on load image
-def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness, image_load):
-    global pt1_y, pt1_x
+def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness):
+    global pt1_y, pt1_x, image_load
     global moving_mouse
 
     # detect if left button is pressed
@@ -178,10 +188,6 @@ def main():
     """
     INITIALIZE -----------------------------------------
     """
-    # create a white image background
-    background = np.zeros((422, 750, 3), np.uint8)
-    background.fill(255)
-
     # program flags
     background_white = True  # background color flag
     pointer_on = False  # pointer method incomplete
@@ -194,6 +200,7 @@ def main():
     image_prepare = False  # image preparation flag
 
     # variables
+    global background, image_load
     dot_x, dot_y = 0, 0  # pen points
     prev_x, prev_y = 0, 0  # point for continuous draw
     rect_pt1_x, rect_pt1_y, rect_pt2_x, rect_pt2_y = 0, 0, 0, 0  # rectangle drawing points
@@ -202,8 +209,6 @@ def main():
     pen_color = (51, 51, 51)
     pen_thickness = 5
 
-    # image load on parse -im
-    image_load = None  # preventing used before assignment bug
     # image copy of the camara to draw on
     image_copy = None  # preventing used before assignment bug
 
@@ -229,7 +234,7 @@ def main():
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
-    if (image_load_flag and image_prepare == False):
+    if image_load_flag and not image_prepare:
         cv2.namedWindow("image load")  # create window for the image
         image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
 
@@ -238,7 +243,7 @@ def main():
             image_load_flag = True
             image_load = prepare_image(args['image_prepare'])
             image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
-            cv2.namedWindow("image load")  # create window for the image
+            # cv2.namedWindow("image load")  # create window for the image
         except:
             print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
@@ -288,9 +293,9 @@ def main():
         contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         # mouse callback on load image
-        if image_load_flag:
+        if image_load_flag and not image_prepare:
             # draw on load image with mouse
-            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness, image_load=image_load)
+            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('image load', draw_on_image)
 
         # create the rectangle over object and draw on the background
@@ -495,8 +500,7 @@ def main():
             rect_drawing_mouse = True
 
         if rect_drawing_mouse:
-            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness,
-                                background=background)
+            rectangle = partial(shape, mode=str('rectangle'), pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.setMouseCallback('Image_Window', rectangle)
             cv2.imshow('Image_Window', background)
 
