@@ -22,10 +22,12 @@ def main():
     image = cv2.imread('./BLOB6_0.png', cv2.IMREAD_COLOR)
     mascaras=[]
 
+    # Base de dados das cores a Utilizar
     color_data_base=[(255, 0, 0),
                     (0, 255, 0),
                     (0, 0, 255)]
 
+    #Chaves para avaliação das Imagens
     keys_of_Bloobs= {'BLOB5_02.png':(1,2,2,3,2,1,1,1,3),
                      'BLOB3_02.png':(1,2,3,3,1),
                      'BLOB4_02.png':(3,3,1,1,2,3,3,3,1,1,2,1,2,2),
