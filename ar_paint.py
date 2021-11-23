@@ -424,37 +424,36 @@ def main():
 
             cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height+text_space),
+            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height + text_space),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height+text_space*2),
+            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height + text_space * 2),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height+text_space*3),
+            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height + text_space * 3),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height+text_space*4),
+            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height + text_space * 4),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height+text_space*5),
+            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height + text_space * 5),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height+text_space*6),
+            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height + text_space * 6),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height+text_space*7),
+            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height + text_space * 7),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height+text_space*8),
+            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height + text_space * 8),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height+text_space*9),
+            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height + text_space * 9),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height+text_space*10),
+            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height + text_space * 10),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height+text_space*11),
+            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height + text_space * 11),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height+text_space*12),
+            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height + text_space * 12),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height+text_space*13),
+            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height + text_space * 13),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height+text_space*14),
+            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height + text_space * 14),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height+text_space*15),
+            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height + text_space * 15),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-
 
             # merge the video and the drawing
             image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
@@ -554,10 +553,14 @@ def main():
                 background.fill(0)
                 background_white = False
                 pen_color = (255, 255, 255)
+                image_canvas.fill(0)
+                cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
             else:
                 background.fill(255)
                 background_white = True
                 pen_color = (51, 51, 51)
+                image_canvas.fill(0)
+                cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
 
         # pointer mode
         if k == ord("p"):
