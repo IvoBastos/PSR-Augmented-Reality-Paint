@@ -28,7 +28,7 @@ BASIC LETTERS:
 EXTRA LETTERS:
 -
 
-'m' - Sets the drawing pencil color to BLACK;
+'m' - Sets the drawing pencil default color;
 
 'a' - Allows the user to clean the screen with the pointer, like an eraser;
 
