@@ -4,11 +4,14 @@ import argparse
 import copy
 import json
 import math
+import pprint
 from functools import partial
 import cv2
 import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
 from time import ctime
+import colorama
+from colorama import Fore, Back, Style
 
 # dictionary with ranges
 ranges_pcss = {"b": {"min": 100, "max": 256},
@@ -64,7 +67,8 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
                     a = x
                     b = y
                     if a != x | b != y:
-                        radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
+                        radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))),
+                                          1 / 2)
                         cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
                 except:
                     pass
@@ -111,9 +115,8 @@ def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness):
 
 
 def prepare_image(imagemTratar):
-
     image = cv2.imread(imagemTratar, cv2.IMREAD_COLOR)
-    imagehsv= cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     cv2.imshow('original', image)  # Display the image
 
     height, width, _ = image.shape
@@ -124,22 +127,22 @@ def prepare_image(imagemTratar):
         if i == 4:
             break
 
-        if i == 3: #apanha o preto +/-
-            lower = np.array([0,0,0])
-            upper = np.array([50,50,50])
+        if i == 3:  # apanha o preto +/-
+            lower = np.array([0, 0, 0])
+            upper = np.array([50, 50, 50])
             mask = cv2.inRange(imagehsv, lower, upper)
 
-        if i == 0: #apanha o verde +/-
-            lower = np.array([35,150,20])
-            upper = np.array([70,255,255])
+        if i == 0:  # apanha o verde +/-
+            lower = np.array([35, 150, 20])
+            upper = np.array([70, 255, 255])
             mask = cv2.inRange(imagehsv, lower, upper)
 
-        if i==1: #apanha o azul +/-
+        if i == 1:  # apanha o azul +/-
             lower = np.array([70, 150, 20])
             upper = np.array([130, 255, 255])
             mask = cv2.inRange(imagehsv, lower, upper)
 
-        if i == 2: #apanha o vermelho +/-
+        if i == 2:  # apanha o vermelho +/-
             # lower mask (0-10)
             lower_red = np.array([0, 50, 50])
             upper_red = np.array([10, 255, 255])
@@ -173,13 +176,14 @@ def prepare_image(imagemTratar):
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])
                 cy = int(M['m01'] / M['m00'])
-                cv2.putText(image_canvas, str(i+1), (cx+2, cy+2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                cv2.putText(image_canvas, str(i + 1), (cx + 2, cy + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255),
+                            2)
 
         image_canvas = cv2.add(image_canvas, maskr)
         i = i + 1
 
     image_canvas = cv2.bitwise_not(image_canvas)
-    #cv2.imshow('pinta', image_canvas)  # Display the image
+    # cv2.imshow('pinta', image_canvas)  # Display the image
 
     return image_canvas
 
@@ -213,7 +217,7 @@ def main():
     image_copy = None  # preventing used before assignment bug
 
     # parse the json file with BGR limits (from color_segmenter.py)
-    parser = argparse.ArgumentParser(description="Load a json file with RGB limits")
+    parser = argparse.ArgumentParser(description="Load a json file with RGB limits and an image to paint on")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
     parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
@@ -247,13 +251,46 @@ def main():
         except:
             print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
-    # print json file then close
-    print(data)
-    file_handle.close()
-
     # ***************************************
 
-    # ADD PRINT() WITH List of letters used to interact with the program
+    # pp = pprint.PrettyPrinter(indent=1)  # Set the dictionary initial indentation.
+
+    print(Back.YELLOW + Fore.BLACK + Style.BRIGHT + "\n====================Augmented Reality "
+                                                    "Paint====================\n")
+    print("\n")
+    print("=> Draw and paint using a detected moving object from a chosen camera. You can use the mouse too!")
+    print("=> Select an object to be your brush by loading a json file with the respective RGB limits")
+    print("=> Run -h command for help" + Style.RESET_ALL)
+    print("\n")
+    print(Back.CYAN + Fore.BLACK + "=> Interactive Keys:" + Style.BRIGHT + Style.RESET_ALL)
+    print("\n")
+    print(Fore.YELLOW + "w" + Style.RESET_ALL + " - Save image as png file")
+    print(Fore.YELLOW + "ESC or q" + Style.RESET_ALL + " - Quit the program")
+    print(Fore.YELLOW + "r" + Style.RESET_ALL + " - Sets the drawing pencil color to RED")
+    print(Fore.YELLOW + "g" + Style.RESET_ALL + " - Sets the drawing pencil color to GREEN")
+    print(Fore.YELLOW + "b" + Style.RESET_ALL + " - Sets the drawing pencil color to BLUE")
+    print(Fore.YELLOW + "m" + Style.RESET_ALL + " - Sets the drawing pencil color to BLACK")
+    print(Fore.YELLOW + "+" + Style.RESET_ALL + " - Increases the drawing pencil thickness")
+    print(Fore.YELLOW + "-" + Style.RESET_ALL + " - Decreases the drawing pencil thickness")
+    print(Fore.YELLOW + "c" + Style.RESET_ALL + " - Clears the drawing screen")
+    print(
+        Fore.YELLOW + "a" + Style.RESET_ALL + " - Allows the user to clean the screen with the pointer, like an eraser")
+    print(Fore.YELLOW + "f" + Style.RESET_ALL + " - Allows the user to switch between a black and white backgrounds")
+    print(Fore.YELLOW + "p" + Style.RESET_ALL + " - Enables the pointer mode i.e allows the user to move a pointer on "
+                                                "the screen")
+    print(Fore.YELLOW + "j" + Style.RESET_ALL + " - Draws a rectangle using mouse events")
+    print(Fore.YELLOW + "º" + Style.RESET_ALL + " - Draws a circle using mouse events")
+    print(Fore.YELLOW + "l" + Style.RESET_ALL + " - The use of the following instructions ('s', 'e', 'j' and 'º') "
+                                                "requires the pressing of the letter 'l' to draw the object with "
+                                                "the desired dimensions")
+    print(Fore.YELLOW + "s" + Style.RESET_ALL + " - Draws a rectangle")
+    print(Fore.YELLOW + "e" + Style.RESET_ALL + " - Draws a circle")
+    print("\n")
+
+    # print json file then close
+    print("Loaded RGB limits: \n")
+    print(data)
+    # file_handle.close()
 
     # ***************************************
 
