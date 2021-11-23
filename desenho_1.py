@@ -94,18 +94,14 @@ def Paint_avalue(Init_image_name):
         # for a in range(1, numLabels_1):
         #     area_1 = stats_1[a, cv2.CC_STAT_AREA]
         #     area_total_blob += area_1
-        Painted_areas_Blobs.append(stats_1[0,cv2.CC_STAT_AREA])
         cv2.imshow('mask_NEW' + str(i), mask_NEW)
+        Painted_areas_Blobs.append(stats_1[0, cv2.CC_STAT_AREA])
+        Total_areas_Blobs.append(stats[i+1, cv2.CC_STAT_AREA])
 
-    Total_areas_Blobs.append(stats[i, cv2.CC_STAT_AREA])
-    accuracy.append((Painted_areas_Blobs[i] / stats[i, cv2.CC_STAT_AREA]) * 100)
+        accuracy.append(Painted_areas_Blobs[i] / Total_areas_Blobs[i])
 
-    # print(area_total_blob)
-    # cv2.putText(mask_NEW, str(areaa_total_blob), (int(cX), int(cY)), FONT_ITALIC, 1, (0, 0, 255), 2, LINE_8)
 
-    print(len(Total_areas_Blobs))
-
-    results.update({'Number of areas':numLabels_1,
+    results.update({'Number of areas':len(mascaras),
                     'Areas a pintar':Total_areas_Blobs,
                     'Areas pintadas':Painted_areas_Blobs,
                     'accuracy': accuracy
