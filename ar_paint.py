@@ -596,8 +596,10 @@ def main():
                 cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing on the camera
 
             if image_load_flag:
-                cv2.imwrite('./drawing_' + str(ctime()) + '.png', image_load)  # Save the drawing painted by AR
-                #Paint_avalue(Init_image_name)
+
+                Image_painted = str(name_of_BLOB_img) + '4.png'
+                cv2.imwrite(Image_painted, image_load)  # Save the drawing painted by AR
+                Paint_avalue(name_of_BLOB_img)
 
             print("DRAWINGS SAVED AS A .PNG FILE")
 
