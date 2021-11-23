@@ -13,7 +13,7 @@ from time import ctime
 import colorama
 from colorama import Fore, Back, Style
 
-# dictionary with ranges
+# dictionary with range
 ranges_pcss = {"b": {"min": 100, "max": 256},
                "g": {"min": 100, "max": 256},
                "r": {"min": 100, "max": 256},

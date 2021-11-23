@@ -13,7 +13,7 @@ def Paint_avalue(Init_image_name):
     Total_areas_Blobs = []
     Painted_areas_Blobs = []
     accuracy = []
-    results = {}  # Analtino
+    results = {}  # Analtino Martinho
 
     ranges = {'b': {'min': 0, 'max': 256},
               'g': {'min': 0, 'max': 256},
