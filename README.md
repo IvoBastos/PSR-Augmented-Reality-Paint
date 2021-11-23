@@ -40,11 +40,11 @@ EXTRA LETTERS:
 
 'o' - Draws a circle using mouse events;
 
-'l' - The use of the two following instructions ('s' and 'e') requires the pressing of the letter 'l' to draw the object with the desired dimentions
-
 's' - Draws a rectangle;
 
 'e' - Draws a circle;
+
+'l' - The use of the following instructions ('s', 'e', 'j' and 'o') requires the pressing of the letter 'l' to draw the object with the desired dimentions
 
 
 
