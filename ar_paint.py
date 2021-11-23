@@ -10,17 +10,16 @@ import cv2
 import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
 from time import ctime
-import colorama
 from colorama import Fore, Back, Style
-
-# dictionary with range
-Images_names={"BLOB3_0.png":'BLOB3_0',
-              "BLOB4_0.png":'BLOB4_0',
-              "BLOB5_0.png":'BLOB5_0',
-              "BLOB6_0.png":'BLOB6_0',
-                                    }
 # dictionary with range
 from desenho_1 import Paint_avalue
+
+# dictionary with range
+Images_names = {"BLOB3_0.png": 'BLOB3_0',
+                "BLOB4_0.png": 'BLOB4_0',
+                "BLOB5_0.png": 'BLOB5_0',
+                "BLOB6_0.png": 'BLOB6_0',
+                }
 
 ranges_pcss = {"b": {"min": 100, "max": 256},
                "g": {"min": 100, "max": 256},
@@ -38,10 +37,11 @@ background.fill(255)
 
 # image load on parse -im
 image_load = None
+image_canvas = None
 
 
 def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
-    global ix, iy, Drag, background
+    global ix, iy, Drag, background, image_canvas
 
     if event == cv2.EVENT_LBUTTONDOWN and not Drag:
         # value of variable draw will be set to True, when you press DOWN left mouse button
@@ -78,7 +78,7 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
                         radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))),
                                           1 / 2)
                         cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
-                except:
+                except ValueError:
                     pass
 
     elif event == cv2.EVENT_LBUTTONDOWN and Drag:
@@ -88,10 +88,12 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
             # As soon as you release the mouse button, variable draw will be set as False
             # Here we are completing to draw the rectangle on image window
             cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
+            cv2.rectangle(image_canvas, (ix, iy), (x, y), pen_color, pen_thickness)
 
         if mode == 'circle':
             radius = math.pow(((math.pow(x, 2) - math.pow(ix, 2)) + (math.pow(y, 2) - math.pow(iy, 2))), 1 / 2)
             cv2.circle(background, (ix, iy), int(radius), pen_color, pen_thickness)
+            cv2.circle(image_canvas, (ix, iy), int(radius), pen_color, pen_thickness)
 
         cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
         background = cv2.imread("temp.png")
@@ -128,7 +130,8 @@ def prepare_image(imagemTratar):
     cv2.imshow('original', image)  # Display the image
 
     height, width, _ = image.shape
-    image_canvas = np.zeros((height, width), np.uint8)
+    image_canvas_ip = np.zeros((height, width), np.uint8)
+    mask_ip = None  # preventing used before assigned
 
     i = 0
     while True:
@@ -138,17 +141,17 @@ def prepare_image(imagemTratar):
         if i == 3:  # apanha o preto +/-
             lower = np.array([0, 0, 0])
             upper = np.array([50, 50, 50])
-            mask = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(imagehsv, lower, upper)
 
         if i == 0:  # apanha o verde +/-
             lower = np.array([35, 150, 20])
             upper = np.array([70, 255, 255])
-            mask = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(imagehsv, lower, upper)
 
         if i == 1:  # apanha o azul +/-
             lower = np.array([70, 150, 20])
             upper = np.array([130, 255, 255])
-            mask = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(imagehsv, lower, upper)
 
         if i == 2:  # apanha o vermelho +/-
             # lower mask (0-10)
@@ -162,17 +165,18 @@ def prepare_image(imagemTratar):
             mask1 = cv2.inRange(imagehsv, lower_red, upper_red)
 
             # join my masks
-            mask = mask0 + mask1
+            mask_ip = mask0 + mask1
 
         # deteta os contornos da cor a trabalhar
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(mask_ip, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        maskr = np.zeros(mask.shape, np.uint8)
-        maskr2 = np.zeros(mask.shape, np.uint8)
-        cv2.drawContours(maskr, contours, -1, (255), 1)
+        maskr = np.zeros(mask_ip.shape, np.uint8)
+        maskr2 = np.zeros(mask_ip.shape, np.uint8)
+        cv2.drawContours(maskr, contours, -1, 255, 1)
 
-        # Preciso de uma imagem de trabalho onde possa preencher achar e achar o centro para depois escrever na mascara inicial
-        cv2.drawContours(maskr2, contours, -1, (255), -1)
+        # Preciso de uma imagem de trabalho onde possa preencher achar e achar o centro para depois escrever na
+        # mascara inicial
+        cv2.drawContours(maskr2, contours, -1, 255, -1)
         kernel = np.ones((3, 3), 'uint8')
 
         image_1 = cv2.erode(maskr2, kernel, iterations=3)
@@ -184,16 +188,16 @@ def prepare_image(imagemTratar):
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])
                 cy = int(M['m01'] / M['m00'])
-                cv2.putText(image_canvas, str(i + 1), (cx + 2, cy + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255),
-                            2)
+                cv2.putText(image_canvas_ip, str(i + 1), (cx + 2, cy + 2),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
-        image_canvas = cv2.add(image_canvas, maskr)
+        image_canvas_ip = cv2.add(image_canvas_ip, maskr)
         i = i + 1
 
-    image_canvas = cv2.bitwise_not(image_canvas)
-    # cv2.imshow('pinta', image_canvas)  # Display the image
+    image_canvas_ip = cv2.bitwise_not(image_canvas_ip)
+    # cv2.imshow('pinta', image_canvas_ip)  # Display the image
 
-    return image_canvas
+    return image_canvas_ip
 
 
 def main():
@@ -212,7 +216,7 @@ def main():
     image_prepare = False  # image preparation flag
 
     # variables
-    global background, image_load
+    global background, image_load, image_canvas
     dot_x, dot_y = 0, 0  # pen points
     prev_x, prev_y = 0, 0  # point for continuous draw
     rect_pt1_x, rect_pt1_y, rect_pt2_x, rect_pt2_y = 0, 0, 0, 0  # rectangle drawing points
@@ -221,8 +225,9 @@ def main():
     pen_color = (51, 51, 51)
     pen_thickness = 5
 
-    # image copy of the camara to draw on
-    image_copy = None  # preventing used before assignment bug
+    image_copy = None  # preventing used before assigned
+    Image_with_Color_Key = None  # preventing used before assigned
+    name_of_BLOB_img = None  # preventing used before assigned
 
     # parse the json file with BGR limits (from color_segmenter.py)
     parser = argparse.ArgumentParser(description="Load a json file with RGB limits and an image to paint on")
@@ -262,7 +267,7 @@ def main():
             image_load = prepare_image(args['image_prepare'])
             image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
             # cv2.namedWindow("image load")  # create window for the image
-        except:
+        except ValueError:
             print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
     # print how to use on terminal
@@ -304,6 +309,7 @@ def main():
     # print json file then close
     print("Loaded RGB limits: \n")
     print(data)
+    print("\n")
     # file_handle.close()
 
     # ***************************************
@@ -337,11 +343,11 @@ def main():
         image = cv2.flip(image, 1)  # flip video capture
 
         # transform the image
-        mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
-        image_segmenter = cv2.bitwise_and(image, image, mask=mask)
+        mask_im = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
+        image_segmenter = cv2.bitwise_and(image, image, mask=mask_im)
 
         # get contours
-        contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        contours, hierarchy = cv2.findContours(mask_im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         # mouse callback on load image
         if image_load_flag and not image_prepare:
@@ -438,37 +444,36 @@ def main():
 
             cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height+text_space),
+            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height + text_space),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height+text_space*2),
+            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height + text_space * 2),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height+text_space*3),
+            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height + text_space * 3),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height+text_space*4),
+            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height + text_space * 4),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height+text_space*5),
+            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height + text_space * 5),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height+text_space*6),
+            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height + text_space * 6),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height+text_space*7),
+            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height + text_space * 7),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height+text_space*8),
+            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height + text_space * 8),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height+text_space*9),
+            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height + text_space * 9),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height+text_space*10),
+            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height + text_space * 10),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height+text_space*11),
+            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height + text_space * 11),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height+text_space*12),
+            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height + text_space * 12),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height+text_space*13),
+            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height + text_space * 13),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height+text_space*14),
+            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height + text_space * 14),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height+text_space*15),
+            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height + text_space * 15),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-
 
             # merge the video and the drawing
             image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
@@ -596,7 +601,6 @@ def main():
                 cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing on the camera
 
             if image_load_flag:
-
                 Image_painted = str(name_of_BLOB_img) + '4.png'
                 cv2.imwrite(Image_painted, image_load)  # Save the drawing painted by AR
                 Paint_avalue(name_of_BLOB_img)
@@ -683,7 +687,7 @@ def main():
                     radius = math.pow(((math.pow(circle_pt1_x, 2) - math.pow(circle_pt2_x, 2)) + (
                             math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
                     cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
-            except:
+            except ValueError:
                 pass
 
         if k == ord("l") and circle_drawing:
@@ -703,7 +707,7 @@ def main():
                             math.pow(circle_pt1_y, 2) - math.pow(circle_pt2_y, 2))), 1 / 2)
                     cv2.circle(background, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
                     cv2.circle(image_canvas, (circle_pt2_x, circle_pt2_y), int(radius), pen_color, pen_thickness)
-            except:
+            except ValueError:
                 pass
 
     """
