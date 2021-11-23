@@ -403,16 +403,24 @@ def main():
 
             # put text on images
             cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            if background_white:
+                cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            else:
+                cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
+
             cv2.putText(image_copy, "Video plus Drawing", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.putText(image_segmenter, "Object Mask", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
 
             # put instructions on background
             text_pos_width = 690
-            text_pos_height = 100
+            text_pos_height = 50
             text_space = 20
             text_scale = 0.4
-            text_color = (0, 0, 0)
+            # if background flip
+            if background_white:
+                text_color = (0, 0, 0)
+            else:
+                text_color = (255, 255, 255)
 
             cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
