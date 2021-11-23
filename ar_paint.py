@@ -12,7 +12,7 @@ from cv2 import FONT_ITALIC, LINE_8
 from time import ctime
 from colorama import Fore, Back, Style
 # dictionary with range
-from desenho_1 import Paint_avalue
+from desenho_3 import Paint_avalue
 
 # dictionary with range
 Images_names = {"BLOB3_0.png": 'BLOB3_0',
@@ -256,7 +256,7 @@ def main():
         name_of_BLOB_img = Images_names[args['image_load']]
 
         Image_to_paint_name = str(name_of_BLOB_img) + '.png'
-        Image_with_Color_Key_name = str(name_of_BLOB_img) + '1.png'
+        Image_with_Color_Key_name = str(name_of_BLOB_img) + '11.png'
 
         image_load = cv2.imread(Image_to_paint_name, cv2.IMREAD_COLOR)  # read the image from parse
         Image_with_Color_Key = cv2.imread(Image_with_Color_Key_name, cv2.IMREAD_COLOR)  # read the image from parse
@@ -353,7 +353,7 @@ def main():
         if image_load_flag and not image_prepare:
             # draw on load image with mouse
             draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
-            cv2.setMouseCallback('image load', draw_on_image)
+           # cv2.setMouseCallback('image load', draw_on_image)
 
         # create the rectangle over object and draw on the background
         for contours in contours:
@@ -495,7 +495,7 @@ def main():
             cv2.imshow('frame', final_frame)
 
         # show the loaded image and the video only
-        if image_load_flag:
+        if image_load_flag and not image_prepare:
             # make the image load the same size as the camera image so that it can be painted in all extension
             image_load = cv2.resize(image_load, (864, 486))  # resize the capture window
             Image_with_Color_Key = cv2.resize(Image_with_Color_Key, (864, 486))  # resize the capture window
@@ -503,9 +503,15 @@ def main():
             # show image (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
             # THE MOUSE)
             cv2.namedWindow("Video Capture")
+
+            paint_frame_v1 = cv2.vconcat((Image_with_Color_Key, image_load))
+            paint_frame_v2 = cv2.vconcat((image, background))
+            paint_frame_h = cv2.hconcat((paint_frame_v2, paint_frame_v1))
+
+            # Show the concatenated frame using imshow.
+            cv2.imshow('paint_frame', paint_frame_h)
             cv2.imshow("Video Capture", image)
-            cv2.imshow("image load", image_load)
-            cv2.imshow("Image_with_Color_Key", Image_with_Color_Key)
+
 
         """
         interactive keys (k) -----------------------------------------
