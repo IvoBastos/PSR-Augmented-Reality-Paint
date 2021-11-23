@@ -25,7 +25,7 @@ ix, iy, Drag = -1, -1, False  # used in def shape
 pt1_y, pt1_x, moving_mouse = 0, 0, False  # used in def mouse_draw
 
 # create a white image background
-background = np.zeros((422, 750, 3), np.uint8)
+background = np.zeros((486, 864, 3), np.uint8)
 background.fill(255)
 
 # image load on parse -im
@@ -251,7 +251,7 @@ def main():
         except:
             print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
-    # ***************************************
+    # print how to use on terminal
 
     # pp = pprint.PrettyPrinter(indent=1)  # Set the dictionary initial indentation.
 
@@ -273,14 +273,14 @@ def main():
     print(Fore.YELLOW + "+" + Style.RESET_ALL + " - Increases the drawing pencil thickness")
     print(Fore.YELLOW + "-" + Style.RESET_ALL + " - Decreases the drawing pencil thickness")
     print(Fore.YELLOW + "c" + Style.RESET_ALL + " - Clears the drawing screen")
-    print(
-        Fore.YELLOW + "a" + Style.RESET_ALL + " - Allows the user to clean the screen with the pointer, like an eraser")
+    print(Fore.YELLOW + "a" + Style.RESET_ALL + " - Allows the user to clean the screen with the pointer, "
+                                                "like an eraser")
     print(Fore.YELLOW + "f" + Style.RESET_ALL + " - Allows the user to switch between a black and white backgrounds")
     print(Fore.YELLOW + "p" + Style.RESET_ALL + " - Enables the pointer mode i.e allows the user to move a pointer on "
                                                 "the screen")
     print(Fore.YELLOW + "j" + Style.RESET_ALL + " - Draws a rectangle using mouse events")
-    print(Fore.YELLOW + "º" + Style.RESET_ALL + " - Draws a circle using mouse events")
-    print(Fore.YELLOW + "l" + Style.RESET_ALL + " - The use of the following instructions ('s', 'e', 'j' and 'º') "
+    print(Fore.YELLOW + "o" + Style.RESET_ALL + " - Draws a circle using mouse events")
+    print(Fore.YELLOW + "l" + Style.RESET_ALL + " - The use of the following instructions ('s', 'e', 'j' and 'o') "
                                                 "requires the pressing of the letter 'l' to draw the object with "
                                                 "the desired dimensions")
     print(Fore.YELLOW + "s" + Style.RESET_ALL + " - Draws a rectangle")
@@ -311,7 +311,7 @@ def main():
     capture = cv2.VideoCapture(0)  # connect to webcam
 
     # create canvas image to join draw and video
-    image_canvas = np.zeros((422, 750, 3), np.uint8)
+    image_canvas = np.zeros((486, 864, 3), np.uint8)
 
     """
     EXECUTION -----------------------------------------
@@ -319,7 +319,7 @@ def main():
     while True:
         # read the image
         _, image = capture.read()
-        image = cv2.resize(image, (750, 422))  # resize the capture window
+        image = cv2.resize(image, (864, 486))  # resize the capture window
         image = cv2.flip(image, 1)  # flip video capture
 
         # transform the image
@@ -398,20 +398,67 @@ def main():
 
         # show the concatenated window
         if not image_load_flag:
+            # deepcopy the original image (creates a full new copy without references)
+            image_copy = copy.deepcopy(image)
+
+            # put text on images
+            cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            cv2.putText(image_copy, "Video plus Drawing", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            cv2.putText(image_segmenter, "Object Mask", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
+
+            # put instructions on background
+            text_pos_width = 690
+            text_pos_height = 100
+            text_space = 20
+            text_scale = 0.4
+            text_color = (0, 0, 0)
+
+            cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height+text_space),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height+text_space*2),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height+text_space*3),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height+text_space*4),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height+text_space*5),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height+text_space*6),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height+text_space*7),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height+text_space*8),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height+text_space*9),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height+text_space*10),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height+text_space*11),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height+text_space*12),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height+text_space*13),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height+text_space*14),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height+text_space*15),
+                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+
+
             # merge the video and the drawing
             image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
             _, image_inverse = cv2.threshold(image_gray, 50, 255, cv2.THRESH_BINARY_INV)
-
-            # join frames
-            final_frame_h1 = cv2.hconcat((image, background))
-
-            # deepcopy the original image (creates a full new copy without references)
-            image_copy = copy.deepcopy(image)
 
             # join video and drawing
             image_inverse = cv2.cvtColor(image_inverse, cv2.COLOR_GRAY2BGR)
             image_copy = cv2.bitwise_and(image_copy, image_inverse)
             image_copy = cv2.bitwise_or(image_copy, image_canvas)
+
+            # join frames
+            final_frame_h1 = cv2.hconcat((image, background))
 
             # horizontally concatenating the two frames.
             final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
@@ -423,7 +470,7 @@ def main():
         # show the loaded image and the video only
         if image_load_flag:
             # make the image load the same size as the camera image so that it can be painted in all extension
-            image_load = cv2.resize(image_load, (750, 422))  # resize the capture window
+            image_load = cv2.resize(image_load, (864, 486))  # resize the capture window
 
             # show image (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
             # THE MOUSE)
@@ -546,7 +593,7 @@ def main():
             cv2.destroyWindow("Image_Window")
 
         # draw a circle with mouse events
-        if k == ord("º"):
+        if k == ord("o"):
             cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
             background = cv2.imread("temp.png")
             cv2.namedWindow('Image_Window')

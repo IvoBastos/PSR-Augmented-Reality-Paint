@@ -33,7 +33,7 @@ EXTRA LETTERS:
 
 'j' - Draws a rectangle using mouse events;
 
-'º' - Draws a circle using mouse events;
+'o' - Draws a circle using mouse events;
 
 'l' - The use of the two following instructions ('s' and 'e') requires the pressing of the letter 'l' to draw the object with the desired dimentions
 
