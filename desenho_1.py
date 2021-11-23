@@ -27,7 +27,7 @@ def Paint_avalue(Init_image_name):
     image_name = str(Init_image_name) + '.png'
 
     image = cv2.imread(image_name, cv2.IMREAD_COLOR)
-    image = cv2.resize(image, (750, 422))
+    image = cv2.resize(image, (864, 486))
 
     print(compare_name)
     mascaras=[]
@@ -71,11 +71,14 @@ def Paint_avalue(Init_image_name):
             mascaras.append(cv2.bitwise_or(mask_3, componentmask))
 
     image_a_comparar = cv2.imread(compare_name, cv2.IMREAD_COLOR)
-    image_a_comparar = cv2.resize(image_a_comparar, (750, 422))
+    image_a_comparar = cv2.resize(image_a_comparar, (864, 486))
     # image_a_comparar= cv2.imread(teste, cv2.IMREAD_COLOR)
     # mask_a_comparar = cv2.cvtColor(image_a_comparar, cv2.COLOR_BGR2GRAY)
 
     cv2.imshow('a_comparar', image_a_comparar)
+
+    print(len(mascaras))
+    print(len(stats))
 
     for i in range(0,len(mascaras)):
 
@@ -91,13 +94,16 @@ def Paint_avalue(Init_image_name):
         # for a in range(1, numLabels_1):
         #     area_1 = stats_1[a, cv2.CC_STAT_AREA]
         #     area_total_blob += area_1
-
-        Total_areas_Blobs.append(stats[i, cv2.CC_STAT_AREA])
-        Painted_areas_Blobs.append(stats_1[i, cv2.CC_STAT_AREA])
-        accuracy.append((area_total_blob/stats[i, cv2.CC_STAT_AREA])*100)
-        # print(area_total_blob)
-        # cv2.putText(mask_NEW, str(areaa_total_blob), (int(cX), int(cY)), FONT_ITALIC, 1, (0, 0, 255), 2, LINE_8)
+        Painted_areas_Blobs.append(stats_1[0,cv2.CC_STAT_AREA])
         cv2.imshow('mask_NEW' + str(i), mask_NEW)
+
+    Total_areas_Blobs.append(stats[i, cv2.CC_STAT_AREA])
+    accuracy.append((Painted_areas_Blobs[i] / stats[i, cv2.CC_STAT_AREA]) * 100)
+
+    # print(area_total_blob)
+    # cv2.putText(mask_NEW, str(areaa_total_blob), (int(cX), int(cY)), FONT_ITALIC, 1, (0, 0, 255), 2, LINE_8)
+
+    print(len(Total_areas_Blobs))
 
     results.update({'Number of areas':numLabels_1,
                     'Areas a pintar':Total_areas_Blobs,
