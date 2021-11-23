@@ -493,12 +493,14 @@ def main():
         if image_load_flag:
             # make the image load the same size as the camera image so that it can be painted in all extension
             image_load = cv2.resize(image_load, (864, 486))  # resize the capture window
+            Image_with_Color_Key = cv2.resize(Image_with_Color_Key, (864, 486))  # resize the capture window
 
             # show image (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
             # THE MOUSE)
             cv2.namedWindow("Video Capture")
             cv2.imshow("Video Capture", image)
             cv2.imshow("image load", image_load)
+            cv2.imshow("Image_with_Color_Key", Image_with_Color_Key)
 
         """
         interactive keys (k) -----------------------------------------
