@@ -1,12 +1,9 @@
-# PSR-Augmented-Reality-Paint
-# To initialize the code for painting a Image use
+# PSR Augmented Reality Paint
+# To initialize the script for painting an Image, just run on terminal:
 
-analtino@analtino:~$ cd Desktop/psr/PSR-TP2
+./ar_paint.py -j limits.json -usp -im BLOB3_0.png
 
-analtino@analtino:~/Desktop/psr/PSR-TP2$ ./ar_paint.py --json limits.json -usp -im BLOB3_0.png
-
-#To save and avaluate the image of the painting 
-click "w" --> will print the results of the avaluation
+To save and evaluate the accuracy of the painting click "w" --> the results of the evaluation will be printed on the terminal.
 
 List of letters used to interact with the program:
 -
