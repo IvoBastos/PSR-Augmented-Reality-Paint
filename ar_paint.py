@@ -14,6 +14,14 @@ import colorama
 from colorama import Fore, Back, Style
 
 # dictionary with range
+Images_names={"BLOB3_0.png":'BLOB3_0',
+              "BLOB4_0.png":'BLOB4_0',
+              "BLOB5_0.png":'BLOB5_0',
+              "BLOB6_0.png":'BLOB6_0',
+                                    }
+# dictionary with range
+from desenho_1 import Paint_avalue
+
 ranges_pcss = {"b": {"min": 100, "max": 256},
                "g": {"min": 100, "max": 256},
                "r": {"min": 100, "max": 256},
@@ -240,7 +248,13 @@ def main():
 
     if image_load_flag and not image_prepare:
         cv2.namedWindow("image load")  # create window for the image
-        image_load = cv2.imread(args['image_load'], cv2.IMREAD_COLOR)  # read the image from parse
+        name_of_BLOB_img = Images_names[args['image_load']]
+
+        Image_to_paint_name = str(name_of_BLOB_img) + '.png'
+        Image_with_Color_Key_name = str(name_of_BLOB_img) + '1.png'
+
+        image_load = cv2.imread(Image_to_paint_name, cv2.IMREAD_COLOR)  # read the image from parse
+        Image_with_Color_Key = cv2.imread(Image_with_Color_Key_name, cv2.IMREAD_COLOR)  # read the image from parse
 
     if image_prepare:
         try:
@@ -424,36 +438,37 @@ def main():
 
             cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height + text_space),
+            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height+text_space),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height + text_space * 2),
+            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height+text_space*2),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height + text_space * 3),
+            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height+text_space*3),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height + text_space * 4),
+            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height+text_space*4),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height + text_space * 5),
+            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height+text_space*5),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height + text_space * 6),
+            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height+text_space*6),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height + text_space * 7),
+            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height+text_space*7),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height + text_space * 8),
+            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height+text_space*8),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height + text_space * 9),
+            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height+text_space*9),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height + text_space * 10),
+            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height+text_space*10),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height + text_space * 11),
+            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height+text_space*11),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height + text_space * 12),
+            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height+text_space*12),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height + text_space * 13),
+            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height+text_space*13),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height + text_space * 14),
+            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height+text_space*14),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height + text_space * 15),
+            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height+text_space*15),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
+
 
             # merge the video and the drawing
             image_gray = cv2.cvtColor(image_canvas, cv2.COLOR_BGR2GRAY)
@@ -553,14 +568,10 @@ def main():
                 background.fill(0)
                 background_white = False
                 pen_color = (255, 255, 255)
-                image_canvas.fill(0)
-                cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
             else:
                 background.fill(255)
                 background_white = True
                 pen_color = (51, 51, 51)
-                image_canvas.fill(0)
-                cv2.imwrite('./temp' + '.png', background)  # Save the drawing for temp use
 
         # pointer mode
         if k == ord("p"):
@@ -584,6 +595,7 @@ def main():
 
             if image_load_flag:
                 cv2.imwrite('./drawing_' + str(ctime()) + '.png', image_load)  # Save the drawing painted by AR
+                #Paint_avalue(Init_image_name)
 
             print("DRAWINGS SAVED AS A .PNG FILE")
 
