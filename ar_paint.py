@@ -133,22 +133,22 @@ def prepare_image(image_catch):
         if i == 4:
             break
 
-        if i == 3:  # apanha o preto +/-
+        if i == 3:  # black color
             lower = np.array([0, 0, 0])
             upper = np.array([50, 50, 50])
             mask_ip = cv2.inRange(image_hsv, lower, upper)
 
-        if i == 0:  # apanha o verde +/-
+        if i == 0:  # green color
             lower = np.array([35, 150, 20])
             upper = np.array([70, 255, 255])
             mask_ip = cv2.inRange(image_hsv, lower, upper)
 
-        if i == 1:  # apanha o azul +/-
+        if i == 1:  # blue color
             lower = np.array([70, 150, 20])
             upper = np.array([130, 255, 255])
             mask_ip = cv2.inRange(image_hsv, lower, upper)
 
-        if i == 2:  # apanha o vermelho +/-
+        if i == 2:  # red color
             # lower mask (0-10)
             lower_red = np.array([0, 50, 50])
             upper_red = np.array([10, 255, 255])
@@ -162,21 +162,21 @@ def prepare_image(image_catch):
             # join my masks
             mask_ip = mask0 + mask1
 
-        # deteta os contornos da cor a trabalhar
+        # detect contours
         contours, _ = cv2.findContours(mask_ip, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         maskr = np.zeros(mask_ip.shape, np.uint8)
         maskr2 = np.zeros(mask_ip.shape, np.uint8)
         cv2.drawContours(maskr, contours, -1, 255, 1)
 
-        # Preciso de uma imagem de trabalho onde possa preencher achar e achar o centro para depois escrever na
+        # Preciso de uma imagem de trabalho onde possa preencher e achar o centro para depois escrever na
         # mascara inicial
         cv2.drawContours(maskr2, contours, -1, 255, -1)
         kernel = np.ones((3, 3), 'uint8')
 
         image_1 = cv2.erode(maskr2, kernel, iterations=3)
 
-        # Escrever o numero da cor no centro do contorno a pintar
+        # write letter colors on contours
         contours_m, _ = cv2.findContours(image_1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contours_mi in contours_m:
             moments = cv2.moments(contours_mi)
@@ -647,7 +647,7 @@ def main():
 
         # save the draw in png file
         if k == ord("w"):
-            if not image_load_flag:
+            if not image_load_flag or not image_prepare_flag:
                 cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)  # Save the drawing
                 cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing on the camera
 
