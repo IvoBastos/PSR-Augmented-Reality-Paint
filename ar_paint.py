@@ -12,13 +12,14 @@ from time import ctime
 from colorama import Fore, Back, Style
 from Paint_Avalue import paint_evaluation
 
-# dictionary with range
+# dictionary with BLOBs
 Images_names = {"BLOB3_0.png": 'BLOB3_0',
                 "BLOB4_0.png": 'BLOB4_0',
                 "BLOB5_0.png": 'BLOB5_0',
                 "BLOB6_0.png": 'BLOB6_0',
                 }
 
+# dictionary with range
 ranges_pcss = {"b": {"min": 100, "max": 256},
                "g": {"min": 100, "max": 256},
                "r": {"min": 100, "max": 256},
