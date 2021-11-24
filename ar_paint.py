@@ -11,8 +11,7 @@ import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
 from time import ctime
 from colorama import Fore, Back, Style
-# dictionary with range
-from desenho_3 import Paint_avalue
+from Paint_Avalue import paint_evaluation
 
 # dictionary with range
 Images_names = {"BLOB3_0.png": 'BLOB3_0',
@@ -681,7 +680,7 @@ def main():
             if image_load_flag:
                 Image_painted = str(name_of_BLOB_img) + '4.png'
                 cv2.imwrite(Image_painted, image_load)  # Save the drawing painted by AR
-                Paint_avalue(name_of_BLOB_img)
+                paint_evaluation(name_of_BLOB_img)
 
             print("DRAWINGS SAVED AS A .PNG FILE")
 
