@@ -131,8 +131,6 @@ def main():
         paint_load = cv2.imread(args['paint_load'], cv2.IMREAD_COLOR)  # read the image from parse
         background = paint_load
 
-
-
     ranges_pcss["b"]["min"] = data["b"]["min"]
     ranges_pcss["b"]["max"] = data["b"]["max"]
     ranges_pcss["g"]["min"] = data["g"]["min"]
@@ -155,7 +153,6 @@ def main():
     # pen variables
     pen_color = (51, 51, 51)
     pen_thickness = 5
-
 
     """
     EXECUTION -----------------------------------------

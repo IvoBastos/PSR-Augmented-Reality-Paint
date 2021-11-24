@@ -127,11 +127,13 @@ def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness):
 def prepare_image(imagemTratar):
     image = cv2.imread(imagemTratar, cv2.IMREAD_COLOR)
     imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    cv2.putText(image, "Original image", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
     cv2.imshow('original', image)  # Display the image
 
     height, width, _ = image.shape
     image_canvas_ip = np.zeros((height, width), np.uint8)
     mask_ip = None  # preventing used before assigned
+    RGB_letter = "N"
 
     i = 0
     while True:
@@ -188,7 +190,13 @@ def prepare_image(imagemTratar):
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])
                 cy = int(M['m01'] / M['m00'])
-                cv2.putText(image_canvas_ip, str(i + 1), (cx + 2, cy + 2),
+                if i == 0:
+                    RGB_letter = "G"
+                elif i == 1:
+                    RGB_letter = "B"
+                elif i == 2:
+                    RGB_letter = "R"
+                cv2.putText(image_canvas_ip, RGB_letter, (cx + 2, cy + 2),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
         image_canvas_ip = cv2.add(image_canvas_ip, maskr)
@@ -213,7 +221,7 @@ def main():
     circle_drawing_mouse = False  # circle draw with the mouse
     shake_prevention = False  # shake prevention flag
     image_load_flag = False  # image load flag
-    image_prepare = False  # image preparation flag
+    image_prepare_flag = False  # image preparation flag
 
     # variables
     global background, image_load, image_canvas
@@ -233,7 +241,7 @@ def main():
     parser = argparse.ArgumentParser(description="Load a json file with RGB limits and an image to paint on")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
-    parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
+    parser.add_argument("-im", "--image_load", type=str, help="Full path to BLOBX_0 (X = [3, 6])")
     parser.add_argument("-ip", "--image_prepare", type=str, help="Full path to png file, to clean")
     args = vars(parser.parse_args())
 
@@ -245,13 +253,13 @@ def main():
         image_load_flag = True
 
     if args["image_prepare"]:
-        image_prepare = True
+        image_prepare_flag = True
 
     # read the json file
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
-    if image_load_flag and not image_prepare:
+    if image_load_flag and not image_prepare_flag:
         cv2.namedWindow("image load")  # create window for the image
         name_of_BLOB_img = Images_names[args['image_load']]
 
@@ -261,14 +269,14 @@ def main():
         image_load = cv2.imread(Image_to_paint_name, cv2.IMREAD_COLOR)  # read the image from parse
         Image_with_Color_Key = cv2.imread(Image_with_Color_Key_name, cv2.IMREAD_COLOR)  # read the image from parse
 
-    if image_prepare:
+    if image_prepare_flag and not image_load_flag:
         try:
-            image_load_flag = True
+            # image_load_flag = True
             image_load = prepare_image(args['image_prepare'])
             image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
-            # cv2.namedWindow("image load")  # create window for the image
+            cv2.namedWindow("image load")  # create window for the image
         except ValueError:
-            print("Ocoreu um erro a carregar o ficheiro para tratamento")
+            print("Error loading the file, please try again.")
 
     # print how to use on terminal
 
@@ -350,10 +358,10 @@ def main():
         contours, hierarchy = cv2.findContours(mask_im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         # mouse callback on load image
-        if image_load_flag and not image_prepare:
+        if image_load_flag and not image_prepare_flag:
             # draw on load image with mouse
             draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
-           # cv2.setMouseCallback('image load', draw_on_image)
+            # cv2.setMouseCallback('image load', draw_on_image)  # draw with mouse
 
         # create the rectangle over object and draw on the background
         for contours in contours:
@@ -388,7 +396,7 @@ def main():
                                  pen_thickness)
 
                         # painting on loaded image
-                        if image_load_flag:
+                        if image_load_flag or image_prepare_flag:
 
                             # draw lines on the load image
                             if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
@@ -417,7 +425,7 @@ def main():
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
         # show the concatenated window
-        if not image_load_flag:
+        if not image_load_flag and not image_prepare_flag:
             # deepcopy the original image (creates a full new copy without references)
             image_copy = copy.deepcopy(image)
 
@@ -495,7 +503,7 @@ def main():
             cv2.imshow('frame', final_frame)
 
         # show the loaded image and the video only
-        if image_load_flag and not image_prepare:
+        if image_load_flag and not image_prepare_flag:
             # make the image load the same size as the camera image so that it can be painted in all extension
             image_load = cv2.resize(image_load, (864, 486))  # resize the capture window
             Image_with_Color_Key = cv2.resize(Image_with_Color_Key, (864, 486))  # resize the capture window
@@ -510,6 +518,19 @@ def main():
 
             # Show the concatenated frame using imshow.
             cv2.imshow('paint_frame', paint_frame_h)
+            cv2.imshow("Video Capture", image)
+
+        # image prepare flag ********************************************************************
+        if not image_load_flag and image_prepare_flag:
+
+            # draw on load image with mouse
+            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
+            cv2.putText(image_load, "image to paint", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            cv2.setMouseCallback('image load', draw_on_image)  # draw with mouse
+            cv2.imshow("image load", image_load)
+
+            cv2.namedWindow("Video Capture")
+            cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.imshow("Video Capture", image)
 
 

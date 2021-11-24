@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from pprint import pprint
 
+from pprint import pprint
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
