@@ -4,7 +4,6 @@ import argparse
 import copy
 import json
 import math
-import pprint
 from functools import partial
 import cv2
 import numpy as np
@@ -47,16 +46,11 @@ def shape(event, x, y, flags, params, mode, pen_color, pen_thickness):
         # mouse location is captured here
         ix, iy = x, y
         Drag = True
-        # cv2.rectangle(background, (ix, iy), (x, y), pen_color, pen_thickness)
 
     elif event == cv2.EVENT_MOUSEMOVE:
         # Dragging the mouse at this juncture
 
         if Drag:
-            # if background_white:
-            #     background.fill(255)
-            # else:
-            #     background.fill(0)
             background = cv2.imread("temp.png")
             if mode == 'rectangle' and Drag:
                 # If draw is True then it means you've clicked on the left mouse button
@@ -123,16 +117,16 @@ def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness):
             pt1_x, pt1_y = x, y
 
 
-def prepare_image(imagemTratar):
-    image = cv2.imread(imagemTratar, cv2.IMREAD_COLOR)
-    imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    cv2.putText(image, "Original image", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-    cv2.imshow('original', image)  # Display the image
+def prepare_image(image_catch):
+    image_ip = cv2.imread(image_catch, cv2.IMREAD_COLOR)
+    image_hsv = cv2.cvtColor(image_ip, cv2.COLOR_BGR2HSV)
+    cv2.putText(image_ip, "Original image", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+    cv2.imshow('original', image_ip)  # Display the image
 
-    height, width, _ = image.shape
+    height, width, _ = image_ip.shape
     image_canvas_ip = np.zeros((height, width), np.uint8)
     mask_ip = None  # preventing used before assigned
-    RGB_letter = ""
+    rgb_letter = ""
 
     i = 0
     while True:
@@ -142,28 +136,28 @@ def prepare_image(imagemTratar):
         if i == 3:  # apanha o preto +/-
             lower = np.array([0, 0, 0])
             upper = np.array([50, 50, 50])
-            mask_ip = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(image_hsv, lower, upper)
 
         if i == 0:  # apanha o verde +/-
             lower = np.array([35, 150, 20])
             upper = np.array([70, 255, 255])
-            mask_ip = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(image_hsv, lower, upper)
 
         if i == 1:  # apanha o azul +/-
             lower = np.array([70, 150, 20])
             upper = np.array([130, 255, 255])
-            mask_ip = cv2.inRange(imagehsv, lower, upper)
+            mask_ip = cv2.inRange(image_hsv, lower, upper)
 
         if i == 2:  # apanha o vermelho +/-
             # lower mask (0-10)
             lower_red = np.array([0, 50, 50])
             upper_red = np.array([10, 255, 255])
-            mask0 = cv2.inRange(imagehsv, lower_red, upper_red)
+            mask0 = cv2.inRange(image_hsv, lower_red, upper_red)
 
             # upper mask (170-180)
             lower_red = np.array([170, 50, 50])
             upper_red = np.array([180, 255, 255])
-            mask1 = cv2.inRange(imagehsv, lower_red, upper_red)
+            mask1 = cv2.inRange(image_hsv, lower_red, upper_red)
 
             # join my masks
             mask_ip = mask0 + mask1
@@ -183,26 +177,27 @@ def prepare_image(imagemTratar):
         image_1 = cv2.erode(maskr2, kernel, iterations=3)
 
         # Escrever o numero da cor no centro do contorno a pintar
-        contoursm, _ = cv2.findContours(image_1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        for contoursmi in contoursm:
-            M = cv2.moments(contoursmi)
-            if M['m00'] != 0:
-                cx = int(M['m10'] / M['m00'])
-                cy = int(M['m01'] / M['m00'])
+        contours_m, _ = cv2.findContours(image_1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contours_mi in contours_m:
+            moments = cv2.moments(contours_mi)
+            if moments['m00'] != 0:
+                cx = int(moments['m10'] / moments['m00'])
+                cy = int(moments['m01'] / moments['m00'])
                 if i == 0:
-                    RGB_letter = "G"
+                    rgb_letter = "G"
                 elif i == 1:
-                    RGB_letter = "B"
+                    rgb_letter = "B"
                 elif i == 2:
-                    RGB_letter = "R"
-                cv2.putText(image_canvas_ip, RGB_letter, (cx + 2, cy + 2),
+                    rgb_letter = "R"
+                elif i == 3:
+                    rgb_letter = "B"
+                cv2.putText(image_canvas_ip, rgb_letter, (cx + 2, cy + 2),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
         image_canvas_ip = cv2.add(image_canvas_ip, maskr)
-        i = i + 1
+        i += 1
 
     image_canvas_ip = cv2.bitwise_not(image_canvas_ip)
-    # cv2.imshow('pinta', image_canvas_ip)  # Display the image
 
     return image_canvas_ip
 
@@ -240,7 +235,7 @@ def main():
     parser = argparse.ArgumentParser(description="Load a json file with RGB limits and an image to paint on")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
-    parser.add_argument("-im", "--image_load", type=str, help="Full path to BLOBX_0 (X = [3, 6])")
+    parser.add_argument("-im", "--image_load", type=str, help="Full path to BLOBX_0 (X ⊂ [3, 6])")
     parser.add_argument("-ip", "--image_prepare", type=str, help="Full path to png file, to clean")
     args = vars(parser.parse_args())
 
@@ -258,8 +253,8 @@ def main():
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
+    # get image load on -im
     if image_load_flag and not image_prepare_flag:
-        cv2.namedWindow("image load")  # create window for the image
         name_of_BLOB_img = Images_names[args['image_load']]
 
         Image_to_paint_name = str(name_of_BLOB_img) + '.png'
@@ -268,18 +263,16 @@ def main():
         image_load = cv2.imread(Image_to_paint_name, cv2.IMREAD_COLOR)  # read the image from parse
         Image_with_Color_Key = cv2.imread(Image_with_Color_Key_name, cv2.IMREAD_COLOR)  # read the image from parse
 
+    # get image load on -ip
     if image_prepare_flag and not image_load_flag:
         try:
-            # image_load_flag = True
             image_load = prepare_image(args['image_prepare'])
             image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
             cv2.namedWindow("image load")  # create window for the image
         except ValueError:
             print("Error loading the file, please try again.")
 
-    # print how to use on terminal
-
-    # pp = pprint.PrettyPrinter(indent=1)  # Set the dictionary initial indentation.
+    # print how to use on terminal ******************************************************************
 
     print(Back.YELLOW + Fore.BLACK + Style.BRIGHT + "\n====================Augmented Reality "
                                                     "Paint====================\n")
@@ -356,12 +349,6 @@ def main():
         # get contours
         contours, hierarchy = cv2.findContours(mask_im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        # mouse callback on load image
-        if image_load_flag and not image_prepare_flag:
-            # draw on load image with mouse
-            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
-            # cv2.setMouseCallback('image load', draw_on_image)  # draw with mouse
-
         # create the rectangle over object and draw on the background
         for contours in contours:
             (x, y, w, h) = cv2.boundingRect(contours)
@@ -415,12 +402,6 @@ def main():
             # point only mode--------------------------------------------------
             else:
                 background = cv2.imread("temp.png")
-                # if background_white:
-                #     background.fill(255)
-                # else:
-                #     background.fill(0)
-                # background.fill(255)
-                # cv2.circle(background, (int(dot_x), int(dot_y)), pen_thickness, pen_color, cv2.FILLED)
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
         # show the concatenated window
@@ -491,14 +472,14 @@ def main():
             image_copy = cv2.bitwise_and(image_copy, image_inverse)
             image_copy = cv2.bitwise_or(image_copy, image_canvas)
 
-            # join frames
+            # horizontally concatenating the two frames
             final_frame_h1 = cv2.hconcat((image, background))
-
-            # horizontally concatenating the two frames.
             final_frame_h2 = cv2.hconcat((image_segmenter, image_copy))
+
+            # join frames
             final_frame = cv2.vconcat((final_frame_h1, final_frame_h2))
 
-            # Show the concatenated frame using imshow.
+            # Show the concatenated frame using image show
             cv2.imshow('frame', final_frame)
 
         # show the loaded image and the video only
@@ -516,7 +497,6 @@ def main():
             cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.putText(image_load, "Image to paint", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.putText(Image_with_Color_Key, "Color key", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            cv2.namedWindow("Video Capture")
 
             # put instructions on background
             text_pos_width = 690
@@ -562,17 +542,16 @@ def main():
             cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height + text_space * 15),
                         cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
 
+            # concatenate
             paint_frame_v1 = cv2.vconcat((Image_with_Color_Key, image_load))
             paint_frame_v2 = cv2.vconcat((image, background))
             paint_frame_h = cv2.hconcat((paint_frame_v2, paint_frame_v1))
 
-            # Show the concatenated frame using imshow.
+            # Show the concatenated frame using image show.
             cv2.imshow('paint_frame', paint_frame_h)
-            cv2.imshow("Video Capture", image)
 
         # image prepare flag ********************************************************************
         if not image_load_flag and image_prepare_flag:
-
             # draw on load image with mouse
             draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
             cv2.putText(image_load, "Image to paint", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
@@ -582,7 +561,6 @@ def main():
             cv2.namedWindow("Video Capture")
             cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.imshow("Video Capture", image)
-
 
         """
         interactive keys (k) -----------------------------------------
@@ -661,10 +639,6 @@ def main():
         if k == ord("p"):
             if pointer_on:
                 pointer_on = False
-                # if background_white:
-                #     background.fill(255)
-                # else:
-                #     background.fill(0)
                 background = cv2.imread("temp.png")
             else:
                 pointer_on = True
@@ -681,6 +655,7 @@ def main():
                 Image_painted = str(name_of_BLOB_img) + '4.png'
                 cv2.imwrite(Image_painted, image_load)  # Save the drawing painted by AR
                 paint_evaluation(name_of_BLOB_img)
+                break
 
             print("DRAWINGS SAVED AS A .PNG FILE")
 

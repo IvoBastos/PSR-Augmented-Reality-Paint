@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from pprint import pprint
 
+from pprint import pprint
 import cv2
 import numpy as np
 from numpy import ndarray
@@ -38,7 +38,7 @@ def paint_evaluation(init_image_name):
                      'BLOB6_04.png': (1, 3, 3, 3, 1, 1, 2, 2, 2, 2, 2, 3, 3)}
 
     mask = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    mask_3 = np.zeros(mask.shape, dtype="int8")
+    mask_3 = np.zeros(mask.shape, dtype="uint8")
 
     # Applying command to find properties
     output = cv2.connectedComponentsWithStats(mask, 8, cv2.CV_32S)
@@ -46,7 +46,7 @@ def paint_evaluation(init_image_name):
 
     for i in range(1, numLabels):
 
-        components = (labels == i).astype("int8") * 255
+        components = (labels == i).astype("uint8") * 255
         mascaras.append(cv2.bitwise_or(mask_3, components))
 
     compare_image = cv2.imread(compare_name, cv2.IMREAD_COLOR)
@@ -77,5 +77,5 @@ def paint_evaluation(init_image_name):
                     })
     print('')
     pprint(results)
-    cv2.waitKey(-1)
+    # cv2.waitKey(-1)
     cv2.destroyAllWindows()
