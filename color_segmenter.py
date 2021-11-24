@@ -3,6 +3,7 @@
 import json
 import cv2
 import numpy as np
+from cv2 import FONT_ITALIC
 
 """
 Script to segment the colors on a video from the pc webcam
@@ -19,17 +20,20 @@ def main():
 
     # create the window
     window_segmented = "Color Segmenter"
-    window_regular = "Video Capture"
-    cv2.namedWindow(window_segmented, cv2.WINDOW_AUTOSIZE)
-    cv2.namedWindow(window_regular, cv2.WINDOW_AUTOSIZE)
+    window_frame = "frame"
+    # window_regular = "Video Capture"
+
+    cv2.namedWindow(window_segmented)
+    cv2.namedWindow(window_frame)
+    # cv2.namedWindow(window_regular)
 
     # create the trackbars
-    cv2.createTrackbar("min B", window_segmented, 0, 255, onTrackbar)
-    cv2.createTrackbar("max B", window_segmented, 255, 255, onTrackbar)
-    cv2.createTrackbar("min G", window_segmented, 0, 255, onTrackbar)
-    cv2.createTrackbar("max G", window_segmented, 255, 255, onTrackbar)
-    cv2.createTrackbar("min R", window_segmented, 0, 255, onTrackbar)
-    cv2.createTrackbar("max R", window_segmented, 255, 255, onTrackbar)
+    cv2.createTrackbar("min B", window_frame, 0, 255, onTrackbar)
+    cv2.createTrackbar("max B", window_frame, 255, 255, onTrackbar)
+    cv2.createTrackbar("min G", window_frame, 0, 255, onTrackbar)
+    cv2.createTrackbar("max G", window_frame, 255, 255, onTrackbar)
+    cv2.createTrackbar("min R", window_frame, 0, 255, onTrackbar)
+    cv2.createTrackbar("max R", window_frame, 255, 255, onTrackbar)
 
     # dictionary with ranges
     ranges_pcss = {"b": {"min": 100, "max": 256},
@@ -37,23 +41,25 @@ def main():
                    "r": {"min": 100, "max": 256},
                    }
 
-    print("Press q to quit or w to save a new file")
+    print("Press w to save a new json file or q to quit")
 
     # cycle for continuously capture the image
     while True:
 
         # read the image
         _, image = capture.read()
-        image = cv2.resize(image, (750, 422))  # resize the capture window
+        image = cv2.resize(image, (950, 535))  # resize the capture window
         image = cv2.flip(image, 1)  # flip video capture
 
+
+
         # read the values on the trackbars
-        min_b_pcss = cv2.getTrackbarPos("min B", window_segmented)
-        max_b_pcss = cv2.getTrackbarPos("max B", window_segmented)
-        min_g_pcss = cv2.getTrackbarPos("min G", window_segmented)
-        max_g_pcss = cv2.getTrackbarPos("max G", window_segmented)
-        min_r_pcss = cv2.getTrackbarPos("min R", window_segmented)
-        max_r_pcss = cv2.getTrackbarPos("max R", window_segmented)
+        min_b_pcss = cv2.getTrackbarPos("min B", window_frame)
+        max_b_pcss = cv2.getTrackbarPos("max B", window_frame)
+        min_g_pcss = cv2.getTrackbarPos("min G", window_frame)
+        max_g_pcss = cv2.getTrackbarPos("max G", window_frame)
+        min_r_pcss = cv2.getTrackbarPos("min R", window_frame)
+        max_r_pcss = cv2.getTrackbarPos("max R", window_frame)
 
         # attribute the read values to the ranges dictionary
         ranges_pcss["b"]["min"] = min_b_pcss
@@ -70,9 +76,16 @@ def main():
         # transform the image and show it
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
+
         # imshows
-        cv2.imshow(window_segmented, image_segmenter)
-        cv2.imshow(window_regular, image)  # regular camara
+        cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+        cv2.putText(image_segmenter, "Mask", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
+
+        image_concatenate = cv2.hconcat((image_segmenter, image))
+        cv2.imshow(window_frame, image_concatenate)
+
+        # cv2.imshow(window_segmented, image_segmenter)
+        # cv2.imshow(window_regular, image)  # regular camera
 
         """
         interactive keys (k) -----------------------------------------
@@ -88,8 +101,8 @@ def main():
             file_name = 'limits.json'
             with open(file_name, 'w') as file_handle:
                 print('Limits file saved in directory by the name ' + file_name)
-                print("Press q to quit or w to save a new file")
                 json.dump(ranges_pcss, file_handle)
+            break
 
         # q to quit
         if k == ord("q"):
