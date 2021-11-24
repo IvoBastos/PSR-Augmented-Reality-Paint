@@ -19,13 +19,10 @@ def main():
     capture = cv2.VideoCapture(0)  # connect to webcam
 
     # create the window
-    window_segmented = "Color Segmenter"
     window_frame = "frame"
     # window_regular = "Video Capture"
 
-    cv2.namedWindow(window_segmented)
     cv2.namedWindow(window_frame)
-    # cv2.namedWindow(window_regular)
 
     # create the trackbars
     cv2.createTrackbar("min B", window_frame, 0, 255, onTrackbar)
@@ -41,6 +38,7 @@ def main():
                    "r": {"min": 100, "max": 256},
                    }
 
+    # print
     print("Press w to save a new json file or q to quit")
 
     # cycle for continuously capture the image
@@ -50,8 +48,6 @@ def main():
         _, image = capture.read()
         image = cv2.resize(image, (950, 535))  # resize the capture window
         image = cv2.flip(image, 1)  # flip video capture
-
-
 
         # read the values on the trackbars
         min_b_pcss = cv2.getTrackbarPos("min B", window_frame)
@@ -77,15 +73,13 @@ def main():
         mask = cv2.inRange(image, mins_pcss, maxs_pcss)  # colors mask
         image_segmenter = cv2.bitwise_and(image, image, mask=mask)
 
-        # imshows
+        # image text
         cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
         cv2.putText(image_segmenter, "Mask", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
 
+        # concatenate and show
         image_concatenate = cv2.hconcat((image_segmenter, image))
         cv2.imshow(window_frame, image_concatenate)
-
-        # cv2.imshow(window_segmented, image_segmenter)
-        # cv2.imshow(window_regular, image)  # regular camera
 
         """
         interactive keys (k) -----------------------------------------
