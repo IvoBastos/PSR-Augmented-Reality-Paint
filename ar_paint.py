@@ -133,7 +133,7 @@ def prepare_image(imagemTratar):
     height, width, _ = image.shape
     image_canvas_ip = np.zeros((height, width), np.uint8)
     mask_ip = None  # preventing used before assigned
-    RGB_letter = "N"
+    RGB_letter = ""
 
     i = 0
     while True:
