@@ -11,7 +11,8 @@ import numpy as np
 from cv2 import FONT_ITALIC, LINE_8
 from time import ctime
 from colorama import Fore, Back, Style
-from Paint_Avalue import paint_evaluation
+# dictionary with range
+from desenho_3 import Paint_avalue
 
 # dictionary with range
 Images_names = {"BLOB3_0.png": 'BLOB3_0',
@@ -126,13 +127,11 @@ def mouse_draw(event, x, y, flags, param, pen_color, pen_thickness):
 def prepare_image(imagemTratar):
     image = cv2.imread(imagemTratar, cv2.IMREAD_COLOR)
     imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    cv2.putText(image, "Original image", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
     cv2.imshow('original', image)  # Display the image
 
     height, width, _ = image.shape
     image_canvas_ip = np.zeros((height, width), np.uint8)
     mask_ip = None  # preventing used before assigned
-    RGB_letter = ""
 
     i = 0
     while True:
@@ -189,13 +188,7 @@ def prepare_image(imagemTratar):
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])
                 cy = int(M['m01'] / M['m00'])
-                if i == 0:
-                    RGB_letter = "G"
-                elif i == 1:
-                    RGB_letter = "B"
-                elif i == 2:
-                    RGB_letter = "R"
-                cv2.putText(image_canvas_ip, RGB_letter, (cx + 2, cy + 2),
+                cv2.putText(image_canvas_ip, str(i + 1), (cx + 2, cy + 2),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
         image_canvas_ip = cv2.add(image_canvas_ip, maskr)
@@ -220,7 +213,7 @@ def main():
     circle_drawing_mouse = False  # circle draw with the mouse
     shake_prevention = False  # shake prevention flag
     image_load_flag = False  # image load flag
-    image_prepare_flag = False  # image preparation flag
+    image_prepare = False  # image preparation flag
 
     # variables
     global background, image_load, image_canvas
@@ -240,7 +233,7 @@ def main():
     parser = argparse.ArgumentParser(description="Load a json file with RGB limits and an image to paint on")
     parser.add_argument("-j", "--json", type=str, required=True, help="Full path to json file")
     parser.add_argument("-usp", "--use_shake_prevention", action="store_true", help="Activating shake prevention")
-    parser.add_argument("-im", "--image_load", type=str, help="Full path to BLOBX_0 (X = [3, 6])")
+    parser.add_argument("-im", "--image_load", type=str, help="Full path to png file")
     parser.add_argument("-ip", "--image_prepare", type=str, help="Full path to png file, to clean")
     args = vars(parser.parse_args())
 
@@ -252,13 +245,13 @@ def main():
         image_load_flag = True
 
     if args["image_prepare"]:
-        image_prepare_flag = True
+        image_prepare = True
 
     # read the json file
     with open(args["json"], "r") as file_handle:
         data = json.load(file_handle)
 
-    if image_load_flag and not image_prepare_flag:
+    if image_load_flag and not image_prepare:
         cv2.namedWindow("image load")  # create window for the image
         name_of_BLOB_img = Images_names[args['image_load']]
 
@@ -268,14 +261,14 @@ def main():
         image_load = cv2.imread(Image_to_paint_name, cv2.IMREAD_COLOR)  # read the image from parse
         Image_with_Color_Key = cv2.imread(Image_with_Color_Key_name, cv2.IMREAD_COLOR)  # read the image from parse
 
-    if image_prepare_flag and not image_load_flag:
+    if image_prepare:
         try:
-            # image_load_flag = True
+            image_load_flag = True
             image_load = prepare_image(args['image_prepare'])
             image_load = cv2.cvtColor(image_load, cv2.IMREAD_COLOR)
-            cv2.namedWindow("image load")  # create window for the image
+            # cv2.namedWindow("image load")  # create window for the image
         except ValueError:
-            print("Error loading the file, please try again.")
+            print("Ocoreu um erro a carregar o ficheiro para tratamento")
 
     # print how to use on terminal
 
@@ -357,10 +350,10 @@ def main():
         contours, hierarchy = cv2.findContours(mask_im.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
         # mouse callback on load image
-        if image_load_flag and not image_prepare_flag:
+        if image_load_flag and not image_prepare:
             # draw on load image with mouse
             draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
-            # cv2.setMouseCallback('image load', draw_on_image)  # draw with mouse
+           # cv2.setMouseCallback('image load', draw_on_image)
 
         # create the rectangle over object and draw on the background
         for contours in contours:
@@ -395,7 +388,7 @@ def main():
                                  pen_thickness)
 
                         # painting on loaded image
-                        if image_load_flag or image_prepare_flag:
+                        if image_load_flag:
 
                             # draw lines on the load image
                             if abs(prev_x - dot_x) < 50 and abs(prev_y - dot_y) < 50:
@@ -424,7 +417,7 @@ def main():
                 cv2.putText(background, '+', (int(dot_x), int(dot_y)), FONT_ITALIC, 1, (255, 0, 0), 2, LINE_8)
 
         # show the concatenated window
-        if not image_load_flag and not image_prepare_flag:
+        if not image_load_flag:
             # deepcopy the original image (creates a full new copy without references)
             image_copy = copy.deepcopy(image)
 
@@ -502,65 +495,14 @@ def main():
             cv2.imshow('frame', final_frame)
 
         # show the loaded image and the video only
-        if image_load_flag and not image_prepare_flag:
+        if image_load_flag and not image_prepare:
             # make the image load the same size as the camera image so that it can be painted in all extension
             image_load = cv2.resize(image_load, (864, 486))  # resize the capture window
             Image_with_Color_Key = cv2.resize(Image_with_Color_Key, (864, 486))  # resize the capture window
 
-            if background_white:
-                cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            else:
-                cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (255, 255, 255), 2)
-
-            # show image
-            cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            cv2.putText(image_load, "Image to paint", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            cv2.putText(Image_with_Color_Key, "Color key", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
+            # show image (THIS WINDOWS CAN'T BE CONCATENATED BECAUSE IMAGE_LOAD USES MOUSE CALLBACK TO PAINT WITH
+            # THE MOUSE)
             cv2.namedWindow("Video Capture")
-
-            # put instructions on background
-            text_pos_width = 690
-            text_pos_height = 50
-            text_space = 20
-            text_scale = 0.4
-            # if background flip
-            if background_white:
-                text_color = (0, 0, 0)
-            else:
-                text_color = (255, 255, 255)
-
-            cv2.putText(background, "w - Save image", (text_pos_width, text_pos_height),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "r - Sets color to RED", (text_pos_width, text_pos_height + text_space),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "g - Sets color to GREEN", (text_pos_width, text_pos_height + text_space * 2),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "b - Sets color to BLUE", (text_pos_width, text_pos_height + text_space * 3),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "m - Sets color to BLACK", (text_pos_width, text_pos_height + text_space * 4),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "+ - Increases thickness", (text_pos_width, text_pos_height + text_space * 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "- - Decreases thickness", (text_pos_width, text_pos_height + text_space * 6),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "c - Clear", (text_pos_width, text_pos_height + text_space * 7),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "a - Eraser", (text_pos_width, text_pos_height + text_space * 8),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "f - Flip backgrounds", (text_pos_width, text_pos_height + text_space * 9),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "p - Pointer", (text_pos_width, text_pos_height + text_space * 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "j - Mouse rectangle", (text_pos_width, text_pos_height + text_space * 11),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "o - Mouse circle", (text_pos_width, text_pos_height + text_space * 12),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "s - Rectangle", (text_pos_width, text_pos_height + text_space * 13),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "e - Circle", (text_pos_width, text_pos_height + text_space * 14),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
-            cv2.putText(background, "l - Lock shape", (text_pos_width, text_pos_height + text_space * 15),
-                        cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_color, 1)
 
             paint_frame_v1 = cv2.vconcat((Image_with_Color_Key, image_load))
             paint_frame_v2 = cv2.vconcat((image, background))
@@ -568,19 +510,6 @@ def main():
 
             # Show the concatenated frame using imshow.
             cv2.imshow('paint_frame', paint_frame_h)
-            cv2.imshow("Video Capture", image)
-
-        # image prepare flag ********************************************************************
-        if not image_load_flag and image_prepare_flag:
-
-            # draw on load image with mouse
-            draw_on_image = partial(mouse_draw, pen_color=pen_color, pen_thickness=pen_thickness)
-            cv2.putText(image_load, "Image to paint", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
-            cv2.setMouseCallback('image load', draw_on_image)  # draw with mouse
-            cv2.imshow("image load", image_load)
-
-            cv2.namedWindow("Video Capture")
-            cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             cv2.imshow("Video Capture", image)
 
 
@@ -680,7 +609,7 @@ def main():
             if image_load_flag:
                 Image_painted = str(name_of_BLOB_img) + '4.png'
                 cv2.imwrite(Image_painted, image_load)  # Save the drawing painted by AR
-                paint_evaluation(name_of_BLOB_img)
+                Paint_avalue(name_of_BLOB_img)
 
             print("DRAWINGS SAVED AS A .PNG FILE")
 
