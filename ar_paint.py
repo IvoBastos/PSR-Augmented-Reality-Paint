@@ -648,7 +648,7 @@ def main():
 
         # save the draw in png file
         if k == ord("w"):
-            if not image_load_flag or not image_prepare_flag:
+            if not image_load_flag and not image_prepare_flag:
                 cv2.imwrite('./drawing_' + str(ctime()) + '.png', background)  # Save the drawing
                 cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_copy)  # Save the drawing on the camera
 
