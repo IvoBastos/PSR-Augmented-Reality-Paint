@@ -191,7 +191,7 @@ def prepare_image(image_catch):
                 elif i == 2:
                     rgb_letter = "R"
                 elif i == 3:
-                    rgb_letter = "B"
+                    rgb_letter = "D"
                 cv2.putText(image_canvas_ip, rgb_letter, (cx + 2, cy + 2),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
@@ -658,6 +658,8 @@ def main():
                 paint_evaluation(name_of_BLOB_img)
                 break
 
+            if image_prepare_flag:
+                cv2.imwrite('./drawing_cam_' + str(ctime()) + '.png', image_load)  # Save the drawing on the camera
             print("DRAWINGS SAVED AS A .PNG FILE")
 
         # draw a rectangle with mouse events

@@ -71,7 +71,7 @@ def paint_evaluation(init_image_name):
         accuracy.append((painted_areas_blobs[i] / total_areas_blobs[i]) * 100)
 
     results.update({'Number of areas': len(mascaras),
-                    'Areas ta painter': total_areas_blobs,
+                    'Areas to paint': total_areas_blobs,
                     'Areas painted': painted_areas_blobs,
                     'accuracy': accuracy
                     })
