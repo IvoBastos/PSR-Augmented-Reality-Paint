@@ -31,7 +31,7 @@ def paint_evaluation(init_image_name):
                        (0, 255, 0),
                        (0, 0, 255)]
 
-    # keys to evaluate the images
+    # keys to evaluate the images_recog
     keys_of_blobs = {'BLOB5_04.png': (1, 2, 2, 3, 2, 1, 1, 1, 3),
                      'BLOB3_04.png': (1, 2, 3, 3, 1),
                      'BLOB4_04.png': (3, 3, 1, 1, 2, 3, 3, 3, 1, 1, 2, 1, 2, 2),

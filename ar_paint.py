@@ -410,7 +410,7 @@ def main():
             # deepcopy the original image (creates a full new copy without references)
             image_copy = copy.deepcopy(image)
 
-            # put text on images
+            # put text on images_recog
             cv2.putText(image, "Video Capture", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
             if background_white:
                 cv2.putText(background, "Drawing Area", (50, 50), FONT_ITALIC, 1, (0, 0, 0), 2)
