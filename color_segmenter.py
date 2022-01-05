@@ -16,8 +16,8 @@ def onTrackbar(threshold):
 
 def main():
     # initial setup
-    capture = cv2.VideoCapture(0)  # connect to webcam
-
+    # capture = cv2.VideoCapture(0)  # connect to webcam
+    capture = cv2.imread("")
     # create the window
     window_frame = "frame"
     # window_regular = "Video Capture"
@@ -92,7 +92,7 @@ def main():
         # w to save the json file
         if k == ord("w"):
             # save json file
-            file_name = 'limits.json'
+            file_name = 'yellow_line.json'
             with open(file_name, 'w') as file_handle:
                 print('Limits file saved in directory by the name ' + file_name)
                 json.dump(ranges_pcss, file_handle)
